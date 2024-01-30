@@ -6,6 +6,7 @@
 #define NEETCODE150_DYNAMIC_PRIOGRAMMING_H
 
 #include "common.h"
+
 //10. Regular Expression Matching
 class Solution10_dp {
 public:
@@ -41,20 +42,78 @@ public:
     }
 };
 
-//53. Maximum Subarray
-class Solution53 {
+//70. climb stairs
+class Solution {
 public:
-    int maxSubArray(vector<int>& nums) {
-        int ans = nums[0];
-        int pre = nums[0];
-        for (int i=1; i<nums.size(); i++) {
-            pre = max(pre, 0) + nums[i];
-            ans = max(ans, pre);
+    int climbStairs(int n) {
+        int pre = 1;
+        int cur = 1;
+        for (int i=2; i<=n; i++) {
+            pre += cur;
+            swap(pre, cur);
         }
-
-        return ans;
+        return cur;
     }
 };
+
+//746. Min Cost Climbing Stairs
+class Solution746 {
+public:
+    int minCostClimbingStairs(vector<int>& cost) {
+        int pre = 0;
+        int cur = 0;
+        for (int i=2; i<=cost.size(); i++) {
+            pre = min(pre + cost[i-2], cur + cost[i-1]);
+            swap(pre, cur);
+        }
+        return cur;
+    }
+};
+
+//198. House Robber
+class Solution198 {
+public:
+    int rob(vector<int>& nums) {
+        int n = nums.size();
+        if (n == 0)
+            return 0;
+        if (n == 1)
+            return nums[0];
+        int pre = nums[0];
+        int cur = max(nums[1], nums[0]);
+        for (int i=2; i<n; i++) {
+            pre = max(pre + nums[i], cur);
+            swap(pre, cur);
+        }
+        return cur;
+    }
+};
+
+//213. House Robber II
+class Solution213 {
+public:
+    int rob_base(vector<int>::iterator begin, vector<int>::iterator end) {
+        int left = 0;
+        int right = 0;
+        for (auto itor = begin; itor<end; itor++) {
+            left = max(left + *itor, right);
+            swap(left, right);
+        }
+        return right;
+    }
+
+    int rob(vector<int>& nums) {
+        int length = nums.size();
+        if (length==0)
+            return 0;
+        if (length == 1)
+            return nums[0];
+
+        return max(rob_base(nums.begin(), nums.end()-1), rob_base(nums.begin()+1, nums.end()));
+    }
+};
+
+//5. Longest Palindromic Substring
 
 
 #endif //NEETCODE150_DYNAMIC_PRIOGRAMMING_H
