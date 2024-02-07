@@ -6,6 +6,7 @@
 #define NEETCODE150_COMMON_H
 
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include <stack>
 #include <queue>
