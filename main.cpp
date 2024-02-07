@@ -1,6 +1,7 @@
 #include "interval.h"
 #include "dfs.h"
 #include "recursion.h"
+#include "greedy.h"
 #include "common.h"
 
 //*************************************** Stack **************************************************//
@@ -1121,6 +1122,10 @@ int reverse(int x) {
 
 
 int main() {
+    Solution1921 s;
+    vector<int> dist = {1,3,4};
+    vector<int> speed = {1,1,1};
+    cout << s.eliminateMaximum(dist, speed) << endl;
     std::cout << "Hello, World!" << std::endl;
     return 0;
 }

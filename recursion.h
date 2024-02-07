@@ -277,7 +277,7 @@ private:
 };
 
 //53. Maximum Subarray
-class Solution53 {
+class Solution53_recursion {
 public:
     int maxSubArray(const vector<int>& nums) {
         if (nums.empty()) {
