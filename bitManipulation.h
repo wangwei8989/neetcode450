@@ -80,6 +80,39 @@ public:
     }
 };
 
+//1470. Shuffle the Array
+class Solution1470 {
+public:
+    vector<int> shuffle(vector<int>& nums, int n) {
+
+        for(int i = 0; i < 2 * n; i ++){
+            int j = i < n ? 2 * i : 2 * (i - n) + 1;
+            nums[j] |= (nums[i] & 1023) << 10;
+        }
+        for(int& e: nums) e >>= 10;
+        return nums;
+    }
+};
+
+//989. Add to Array-Form of Integer
+class Solution989 {
+public:
+    vector<int> addToArrayForm(vector<int>& num, int k) {
+        std::vector<int> result;
+        int n = num.size();
+        int carry = 0;
+
+        for (int i = n - 1; i >= 0 || k > 0 || carry > 0; --i, k /= 10) {
+            int digit = (i >= 0 ? num[i] : 0) + (k % 10) + carry;
+            carry = digit / 10;
+            result.push_back(digit % 10);
+        }
+
+        std::reverse(result.begin(), result.end());
+        return result;
+    }
+};
+
 //371. Sum of Two Integers
 class Solution371 {
 public:
@@ -107,6 +140,28 @@ public:
                 return 0;
             result = result * 10 + digit;
         }
+        return result;
+    }
+};
+
+//67. Add Binary
+class Solution67 {
+public:
+    string addBinary(string a, string b) {
+        std::string result;
+        int carry = 0;
+        int i = a.size() - 1;
+        int j = b.size() - 1;
+
+        while (i >= 0 || j >= 0 || carry > 0) {
+            int sum = carry;
+            if (i >= 0) sum += a[i--] - '0';
+            if (j >= 0) sum += b[j--] - '0';
+            result += '0' + (sum % 2);
+            carry = sum / 2;
+        }
+
+        std::reverse(result.begin(), result.end());
         return result;
     }
 };
