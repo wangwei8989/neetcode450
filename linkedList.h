@@ -62,6 +62,142 @@ public:
     }
 };
 
+//234. Palindrome Linked List
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution234 {
+    ListNode* reverseList(ListNode* head){
+        if(nullptr==head || nullptr==head->next)
+            return head;
+        ListNode *res = reverseList(head->next);
+        head->next->next = head;
+        head->next = nullptr;
+        return res;
+    }
+
+    int getListLength(ListNode *head) {
+        int len = 0;
+        ListNode *node = head;
+        while(node->next != nullptr) {
+            len++;
+            node = node->next;
+        }
+        return len;
+    }
+
+public:
+    bool isPalindrome(ListNode* head) {
+        if(head == nullptr||head->next== nullptr){
+            return true;
+        }
+        int len = getListLength(head);
+        len = len - len/2;
+        ListNode *node = head;
+        while(len-->0){
+            node = node->next;
+        }
+        ListNode *rhead = reverseList(node);
+        if(rhead== nullptr){
+            return false;
+        }
+        while(rhead!=nullptr){
+            if(head->val!=rhead->val){
+                return false;
+            } else{
+                head = head->next;
+                rhead = rhead->next;
+            }
+        }
+        return true;
+    }
+};
+
+//203. Remove Linked List Elements
+class Solution203_linkedlist {
+public:
+    ListNode* removeElements(ListNode* head, int val) {
+        if(nullptr == head) {
+            return nullptr;
+        }
+        while(head != nullptr && val == head->val) {
+            head = head->next;
+        }
+        ListNode *node = head;
+        while( nullptr != node) {
+            if(nullptr == node->next) {
+                return head;
+            }
+            if(val == node->next->val) {
+                node->next = node->next->next;
+            } else {
+                node = node->next;
+            }
+        }
+        return head;
+    }
+};
+
+//83. Remove Duplicates from Sorted List
+class Solution83 {
+public:
+    ListNode* deleteDuplicates(ListNode* head) {
+        ListNode* cur = head;
+        ListNode* prev = new ListNode;
+        prev->next = cur;
+        ListNode* next = nullptr;
+        while (cur != nullptr) {
+            next = cur->next;
+            while (next != nullptr && next->val == cur->val) {
+                next = next->next;
+            }
+            cur->next = next;
+            cur = next;
+        }
+        return head;
+    }
+};
+
+//876. Middle of the Linked List
+class Solution876 {
+public:
+    ListNode* middleNode(ListNode* head) {
+        ListNode* slow = head;
+        ListNode* fast = head;
+        while (fast != nullptr && fast->next != nullptr) {
+            slow = slow->next;
+            fast = fast->next->next;
+        }
+        return slow;
+    }
+};
+
+//160. Intersection of Two Linked Lists
+class Solution160 {
+public:
+    ListNode *getIntersectionNode(ListNode *headA, ListNode *headB) {
+        unordered_set<ListNode *> visited;
+        ListNode *temp = headA;
+        while (temp != nullptr) {
+            visited.insert(temp);
+            temp = temp->next;
+        }
+        temp = headB;
+        while (temp != nullptr) {
+            if (visited.count(temp)) {
+                return temp;
+            }
+            temp = temp->next;
+        }
+        return nullptr;
+    }
+};
+
 //143. Reorder List
 class Solution {
 public:
@@ -141,6 +277,66 @@ public:
     }
 };
 
+//707. Design Linked List
+class MyLinkedList {
+public:
+    MyLinkedList() {
+        this->size = 0;
+        this->head = new ListNode(0);
+    }
+
+    int get(int index) {
+        if (index < 0 || index >= size) {
+            return -1;
+        }
+        ListNode *cur = head;
+        for (int i = 0; i <= index; i++) {
+            cur = cur->next;
+        }
+        return cur->val;
+    }
+
+    void addAtHead(int val) {
+        addAtIndex(0, val);
+    }
+
+    void addAtTail(int val) {
+        addAtIndex(size, val);
+    }
+
+    void addAtIndex(int index, int val) {
+        if (index > size) {
+            return;
+        }
+        index = max(0, index);
+        size++;
+        ListNode *pred = head;
+        for (int i = 0; i < index; i++) {
+            pred = pred->next;
+        }
+        ListNode *toAdd = new ListNode(val);
+        toAdd->next = pred->next;
+        pred->next = toAdd;
+    }
+
+    void deleteAtIndex(int index) {
+        if (index < 0 || index >= size) {
+            return;
+        }
+        size--;
+        ListNode *pred = head;
+        for (int i = 0; i < index; i++) {
+            pred = pred->next;
+        }
+        ListNode *p = pred->next;
+        pred->next = pred->next->next;
+        delete p;
+    }
+private:
+    int size;
+    ListNode *head;
+};
+
 //2. Add Two Numbers
 class Solution2 {
 public:
@@ -201,6 +397,237 @@ public:
             fast = nums[fast];
         }
         return slow;
+    }
+};
+
+//24. Swap Nodes in Pairs
+class Solution24 {
+public:
+    ListNode* swapPairs(ListNode* head) {
+        if (head == nullptr || head->next == nullptr)
+            return head;
+        auto next = head->next;
+        head->next = swapPairs(next->next);
+        next->next = head;
+        return next;
+    }
+};
+
+//148. Sort List
+class Solution148 {
+private:
+    // find middle of LL using slow and fast pointers
+    ListNode* findLLMid(ListNode* head) {
+        ListNode* slow = head;
+        ListNode* fast = head->next;
+        while (fast != NULL && fast->next != NULL) {
+            slow = slow->next;
+            fast = fast->next->next;
+        }
+        return slow;
+    }
+
+    // merges two sorted LLs
+    ListNode* merge(ListNode* head1, ListNode* head2) {
+        ListNode* dummy = new ListNode();
+        ListNode* p = dummy;
+        ListNode* p1 = head1;
+        ListNode* p2 = head2;
+
+        while (p1 != NULL && p2 != NULL) {
+            if (p1->val < p2->val) {
+                ListNode* temp = p1->next;
+                p->next = p1;
+                p1->next = NULL;
+                p1 = temp;
+            } else {
+                ListNode* temp = p2->next;
+                p->next = p2;
+                p2->next = NULL;
+                p2 = temp;
+            }
+            p = p->next;
+        }
+
+        if (p1 == NULL) {
+            p->next = p2;
+        } else if (p2 == NULL) {
+            p->next = p1;
+        }
+
+        return dummy->next;
+    }
+public:
+    // merge sort implementation
+    ListNode* sortList(ListNode* head) {
+        // base cases
+        if (head == NULL)
+            return NULL;
+        if (head->next == NULL)
+            return head;
+
+        // split LL into two halves
+        ListNode* middleOfLL = findLLMid(head);
+        ListNode* leftHalf = head;
+        ListNode* rightHalf = middleOfLL->next;
+        middleOfLL->next = NULL; // this cuts off the right half from the left half
+
+        // sort the two halves seperately and then merge them into one
+        leftHalf = sortList(leftHalf);
+        rightHalf = sortList(rightHalf);
+        head = merge(leftHalf, rightHalf);
+
+        return head;
+    }
+};
+
+//86. Partition List
+class Solution86 {
+public:
+    ListNode* partition(ListNode* head, int x) {
+        ListNode* p1 = new ListNode;
+        ListNode* l1 = p1;
+        ListNode* p2 = new ListNode;
+        ListNode* l2 = p2;
+        while (head != nullptr) {
+            if (head->val < x) {
+                l1->next = head;
+                l1 = l1->next;
+            }
+            else {
+                l2->next = head;
+                l2 = l2->next;
+            }
+            head = head->next;
+        }
+        l2->next = nullptr;
+        l1->next = p2->next;
+        return p1->next;
+    }
+};
+
+//61. Rotate List
+class Solution61 {
+public:
+    ListNode* rotateRight(ListNode* head, int k) {
+        if (head == nullptr || head->next == nullptr || k==0)
+            return head;
+        int n = 1;
+        ListNode* node = head;
+        while (node->next != nullptr) {
+            node = node->next;
+            n++;
+        }
+        int add = n- k % n;
+        if (add==n) {
+            return head;
+        }
+        node->next = head;
+        while (add--) {
+            node = node->next;
+        }
+        ListNode* ret = node->next;
+        node->next = nullptr;
+        return ret;
+    }
+};
+
+//92. Reverse Linked List II
+class Solution92 {
+public:
+    ListNode* reverseBetween(ListNode* head, int left, int right) {
+        if (head == nullptr || head->next == nullptr)
+            return head;
+        right -= left;
+        auto curr = head;
+        ListNode* prev = nullptr;
+        while(--left && curr != nullptr) {
+            prev = curr;
+            curr = curr->next;
+        }
+        auto leftNode = prev;
+
+        while (right-- >= 0 && curr != nullptr) {
+            auto next = curr->next;
+            curr->next = prev;
+            prev = curr;
+            curr = next;
+        }
+        if (leftNode != nullptr) {
+            leftNode->next->next = curr;
+            leftNode->next = prev;
+        }
+        else {
+            head->next = curr;
+            head = prev;
+        }
+        return head;
+    }
+};
+
+//622. Design Circular Queue
+class MyCircularQueue {
+    int head;
+    int count;
+    vector<int> data;
+    int size;
+public:
+    /** Initialize your data structure here. Set the size of the queue to be k. */
+    MyCircularQueue(int k) {
+        head = 0;
+        count = 0;
+        size = k;
+        data.resize(k);
+    }
+
+    /** Insert an element into the circular queue. Return true if the operation is successful. */
+    bool enQueue(int value) {
+        if (isFull())
+            return false;
+        data[(head + count) % size] = value;
+        count++;
+        return true;
+    }
+
+    /** Delete an element from the circular queue. Return true if the operation is successful. */
+    bool deQueue() {
+        if (isEmpty())
+            return false;
+        head = ++head % size;
+        count--;
+        return true;
+    }
+
+    /** Get the front item from the queue. */
+    int Front() {
+        if (isEmpty())
+            return -1;
+        return data[head];
+    }
+
+    /** Get the last item from the queue. */
+    int Rear() {
+        if (isEmpty())
+            return -1;
+        return data[(head + count - 1) % size];
+    }
+
+    /** Checks whether the circular queue is empty or not. */
+    bool isEmpty() {
+        if (count == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /** Checks whether the circular queue is full or not. */
+    bool isFull() {
+        if (count == size) {
+            return true;
+        } else {
+            return false;
+        }
     }
 };
 
