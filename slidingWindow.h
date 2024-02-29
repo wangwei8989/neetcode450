@@ -20,6 +20,24 @@ public:
     }
 };
 
+//219. Contains Duplicate II
+class Solution219 {
+public:
+    bool containsNearbyDuplicate(vector<int>& nums, int k) {
+        unordered_set<int> set;
+        for (int i = 0; i< nums.size(); i++) {
+            if (set.count(nums[i])!=0) {
+                return true;
+            }
+
+            set.insert(nums[i]);
+            if (set.size()>k)
+                set.erase(nums[i-k]);
+        }
+        return false;
+    }
+};
+
 //3. Longest Substring Without Repeating Characters
 class Solution3 {
 public:
@@ -107,6 +125,80 @@ private:
     }
 };
 
+//904. Fruit Into Baskets
+class Solution904 {
+public:
+    int totalFruit(vector<int>& fruits) {
+        unordered_map<int, int> map;
+        typedef std::unordered_map<int, int> maptype;
+        int left = 0;
+        int right = 0;
+        int ans = 0;
+        while (right<fruits.size()) {
+            map[fruits[right]] = right;
+            if(map.size()>2) {
+                ans = max(ans, right-left);
+                auto it = min_element(map.begin(), map.end(),
+                                      [](maptype::const_reference p, maptype::const_reference q){
+                                          return p.second < q.second;
+                                      });
+
+                left = max(left, it->second+1);
+                map.erase(it->first);
+            }
+            right++;
+        }
+        return max(ans, right-left);
+    }
+};
+
+//1456. Maximum Number of Vowels in a Substring of Given Length
+class Solution {
+public:
+    bool isvowel(char ch) {
+        if (ch == 'a' || ch == 'e' || ch == 'i' || ch == 'o' || ch == 'u')
+            return true;
+        return false;
+    }
+
+    int maxVowels(string s, int k) {
+        int cnt = 0;
+        int left = 0;
+        int max_cnt = cnt;
+
+        for (int right=0; right<s.length(); right++) {
+            if(isvowel(s[right])) {
+                cnt++;
+            }
+            if (right>=k && isvowel(s[right-k])) {
+                cnt--;
+            }
+            max_cnt = max(max_cnt, cnt);
+        }
+        return max_cnt;
+    }
+};
+
+//209. Minimum Size Subarray Sum
+class Solution209 {
+public:
+    int minSubArrayLen(int target, vector<int>& nums) {
+        int left = 0;
+        int right = 0;
+        int min_len = INT_MAX;
+        int sum = 0;
+        while ( right<nums.size()) {
+            sum += nums[right];
+            while (sum>=target) {
+                min_len = min(min_len, right-left);
+                sum -= nums[left++];
+            }
+            right++;
+        }
+        return min_len == INT_MAX ? 0:min_len+1;
+    }
+};
+
 //76. Minimum Window Substring
 class Solution76 {
 public:
@@ -142,6 +234,30 @@ public:
             return s.substr(minStart, minLength);
         }
         return "";
+    }
+};
+
+//1658. Minimum Operations to Reduce X to Zero
+class Solution1658 {
+public:
+    int minOperations(vector<int>& nums, int x) {
+        int left = 0;
+        int right = 0;
+        int sum = 0;
+        int max_len = INT_MIN;
+        int all = accumulate(nums.begin(), nums.end(), 0);
+        while (right <= nums.size() && left<nums.size()) {
+            if (sum == all - x) {
+                max_len = max(max_len, right-left);
+            }
+            if (sum>=all-x && left<right) {
+                sum -= nums[left++];
+                continue;
+            }
+
+            sum += nums[right++];
+        }
+        return max_len==INT_MIN ? -1: nums.size() - max_len;
     }
 };
 
