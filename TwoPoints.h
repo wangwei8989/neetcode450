@@ -33,7 +33,6 @@ public:
 
 //680. Valid Palindrome II
 class Solution680 {
-private:
     bool validPalindromeUtil(string s, int i, int j) {
         while(i < j)
             if(s[i] == s[j]) {
@@ -80,17 +79,17 @@ public:
     string mergeAlternately(string word1, string word2)
     {
         int i=0;
-        string final="";
+        string ans="";
 
         while(i < word1.size() && i < word2.size())
-            final = final + word1[i] + word2[i++];
+            ans = ans + word1[i] + word2[i++];
 
         while(i < word1.size())
-            final += word1[i++];
+            ans += word1[i++];
         while(i < word2.size())
-            final += word2[i++];
+            ans += word2[i++];
 
-        return final;
+        return ans;
     }
 };
 
@@ -121,8 +120,8 @@ public:
             return;
         }
         while (i < m) {
-            if (nums1[i] > nums2[j]) {
-                swap(nums1[i], nums2[j]);
+            if (nums1[i] > nums2[0]) {
+                swap(nums1[i], nums2[0]);
                 sort(nums2.begin(), nums2.end());
             }
             i++;
@@ -146,7 +145,7 @@ public:
             }
         }
 
-        for(left; left < nums.size(); left ++){
+        for(left; left < nums.size(); left++){
             nums[left] = 0;
         }
     }
@@ -177,7 +176,7 @@ public:
         int left = 2;
         int right = 2;
         while (right < nums.size()) {
-            if (nums[right] != nums[left-2])
+            if (nums[left-2] != nums[right])
                 nums[left++] = nums[right];
             right++;
         }
@@ -274,7 +273,10 @@ public:
                     continue;
                 int l = j + 1, r = n - 1;
                 while (l < r) {
-                    long sm = (long)nums[i] + (long)nums[j] + (long)nums[l] + (long)nums[r];
+                    long sm = static_cast<long>(nums[i]) +
+                              static_cast<long>(nums[j]) +
+                              static_cast<long>(nums[l]) +
+                              static_cast<long>(nums[r]);
                     if (sm == target) {
                         res.push_back(vector<int>{nums[i], nums[j], nums[l], nums[r]});
                         l += 1;
@@ -318,6 +320,41 @@ public:
 };
 
 //1498. Number of Subsequences That Satisfy the Given Sum Condition
+class Solution1498 {
+public:
+    int numSubseq(vector<int>& nums, int target) {
+        sort(nums.begin(), nums.end());
+        int n = nums.size();
+
+        int left = 0;
+        int right = n - 1;
+        int res = 0;
+        int mod = 1e9 + 7;
+        while (left <= right) {
+            if (nums[left] + nums[right] > target) {
+                right--;
+            }
+            else {
+                res = (res + fastPower(2, right - left, mod)) % mod;
+                left++;
+            }
+        }
+        return res;
+    }
+
+    int fastPower(int a, int b, int mod) {
+        long long ans = 1;
+        long long base = a;
+        while (b != 0) {
+            if (b % 2 == 1) {
+                ans = (ans * base) % mod;
+            }
+            base = (base * base) % mod;
+            b /= 2;
+        }
+        return ans;
+    }
+};
 
 //189. Rotate Array
 class Solution189 {
@@ -330,8 +367,47 @@ public:
     }
 };
 
-//881. Boats to Save People
+//1968. Array With Elements Not Equal to Average of Neighbors
+class Solution1968 {
+public:
+    vector<int> rearrangeArray(vector<int>& nums) {
+        for(int i=1;i<nums.size()-1;i++){
+            int a=nums[i-1];
+            int b=nums[i];
+            int c=nums[i+1];
+            if(a>b && b>c || a<b && b<c)
+            {
+                swap(nums[i],nums[i+1]);
+            }
+        }
+        return nums;
+    }
+};
 
+//881. Boats to Save People
+class Solution881 {
+public:
+    int numRescueBoats(vector<int>& people, int limit) {
+        sort(people.begin(), people.end());
+
+        int boatRequired = 0;
+        int lightestPerson = 0;
+        int heaviestPerson = people.size()-1;
+
+        while (lightestPerson <= heaviestPerson){
+            if(people[lightestPerson] + people[heaviestPerson] <= limit){
+                --heaviestPerson;
+                ++lightestPerson;
+            }
+            else{
+                --heaviestPerson;
+            }
+            ++boatRequired;
+        }
+
+        return boatRequired;
+    }
+};
 
 //42. Trapping Rain Water
 class Solution42 {
