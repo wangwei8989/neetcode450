@@ -30,6 +30,37 @@ public:
     }
 };
 
+//225. Implement Stack using Queues
+class MyStack {
+    queue<int> q1;
+    queue<int> q2;
+public:
+    MyStack() = default;
+
+    void push(int x) {
+        q2.push(x);
+        while (!q1.empty()) {
+            q2.push(q1.front());
+            q1.pop();
+        }
+        swap(q1, q2);
+    }
+
+    int pop() {
+        int x = q1.front();
+        q1.pop();
+        return x;
+    }
+
+    int top() {
+        return q1.front();
+    }
+
+    bool empty() {
+        return q1.empty();
+    }
+};
+
 //155. Min Stack
 class MinStack {
     stack<int> st;
@@ -135,7 +166,7 @@ public:
 };
 
 //853. Car Fleet
-class Solution {
+class Solution853 {
 public:
     int carFleet(int target, vector<int>& position, vector<int>& speed) {
         int n = position.size();
@@ -159,6 +190,41 @@ public:
         }
 
         return result;
+    }
+};
+
+//394. Decode String
+class Solution394 {
+public:
+    string decodeString(string s) {
+        stack<int> multi_stack;
+        stack<string> str_stack;
+        string ans;
+        int multi = 0;
+        for (const auto c: s) {
+            if (c == '[') {
+                multi_stack.push(multi);
+                str_stack.push(ans);
+                multi = 0;
+                ans.clear();
+            }
+            else if (c == ']') {
+                string temp;
+                while (multi_stack.top()-- > 0) {
+                    temp += ans;
+                }
+                multi_stack.pop();
+                ans = str_stack.top() + temp;
+                str_stack.pop();
+            }
+            else if (isdigit(c)) {
+                multi = multi * 10 + c - '0';
+            }
+            else {
+                ans += c;
+            }
+        }
+        return ans;
     }
 };
 
