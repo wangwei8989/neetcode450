@@ -153,7 +153,7 @@ public:
 };
 
 //1456. Maximum Number of Vowels in a Substring of Given Length
-class Solution {
+class Solution1456 {
 public:
     bool isvowel(char ch) {
         if (ch == 'a' || ch == 'e' || ch == 'i' || ch == 'o' || ch == 'u')
