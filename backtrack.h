@@ -64,6 +64,138 @@ private:
     }
 };
 
+//77. Combinations
+class Solution77 {
+public:
+    void dfs(int n, int k, vector<int>& path, vector<vector<int>>& res) {
+        int i= path.empty() ? 1 :path.back() + 1;
+        for (; i<=n; i++) {
+            path.emplace_back(i);
+            if (path.size() == k) {
+                res.emplace_back(path);
+            }
+            else {
+                dfs(n, k, path, res);
+            }
+            path.pop_back();
+        }
+    }
+    vector<vector<int>> combine(int n, int k) {
+        vector<vector<int>> res;
+        vector<int> path;
+        dfs(n, k, path, res);
+        return res;
+    }
+};
+
+//47. Permutations II
+class Solution47 {
+    vector<vector<int>> res;
+    bitset<8> used;
+public:
+    void dfs(vector<int> path, vector<int>& nums) {
+        if (path.size() == nums.size()) {
+            res.emplace_back(path);
+            return;
+        }
+        for (int i=0; i<nums.size(); i++) {
+            if (used[i])
+                continue;
+            if (i>0 && nums[i]==nums[i-1] && !used[i-1])
+                continue;
+            used.set(i);
+            path.emplace_back(nums[i]);
+            dfs(path, nums);
+            path.pop_back();
+            used.reset(i);
+        }
+
+    }
+    vector<vector<int>> permuteUnique(vector<int>& nums) {
+        vector<int> path;
+        sort(nums.begin(), nums.end());
+        dfs(path, nums);
+        return res;
+    }
+};
+
+//473. Matchsticks to Square
+class Solution473 {
+    bitset<15> used;
+public:
+    bool dfs(vector<int>& matchsticks, int step, int edge, int begin, int tempsum) {
+        if (step == 4)
+            return true;
+        if (tempsum == edge) {
+            return dfs(matchsticks, step+1, edge, 0, 0);
+        }
+        for (int i=begin; i<matchsticks.size(); i++) {
+            if (used[i])
+                continue;
+            if (tempsum+matchsticks[i]>edge)
+                break;
+            used.set(i);
+            if (dfs(matchsticks, step, edge, begin+1, tempsum+matchsticks[i]))
+                return true;
+            used.reset(i);
+            while(i+1<matchsticks.size() && matchsticks[i]== matchsticks[i+1])
+                i++;
+        }
+        return false;
+    }
+
+    bool makesquare(vector<int>& matchsticks) {
+        if (matchsticks.size()<4)
+            return false;
+        int sum = accumulate(matchsticks.begin(), matchsticks.end(), 0);
+        if (sum % 4!=0)
+            return false;
+        int edge = sum / 4;
+        sort(matchsticks.begin(), matchsticks.end());
+        return dfs(matchsticks, 0, edge, 0, 0);
+    }
+};
+
+//52. N-Queens II
+class Solution52 {
+public:
+
+    int totalNQueens(int n) {
+        vector<bool> mainline(2*n -1);
+        vector<bool> subline(2*n -1);
+        vector<bool> col(n);
+        //vector<vector<int>> paths;
+        int cnt = 0;
+        vector<int> path;
+
+        dfs_help(0, path, mainline, subline, col, n, cnt);
+
+        return cnt;
+    }
+
+    void dfs_help(int row, vector<int>& path, vector<bool>& mainline, vector<bool>& subline, vector<bool>& col, int& n, int& cnt) {
+        if (row == n) {
+            //paths.push_back(path);
+            cnt++;
+            return;
+        }
+
+        for (int j=0; j<n; j++) {
+            if (!mainline[row-j + n-1] && !subline[row+j] && !col[j]) {
+                mainline[row-j + n-1] = true;
+                subline[row+j] = true;
+                col[j] = true;
+                path.push_back(j);
+                dfs_help(row+1, path, mainline, subline, col, n, cnt);
+                mainline[row-j + n-1] = false;
+                subline[row+j] = false;
+                col[j] = false;
+                path.pop_back();
+            }
+        }
+    }
+};
+
 //46. Permutations
 class Solution46 {
 public:
