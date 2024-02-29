@@ -6,6 +6,29 @@
 #define NEETCODE150_MATH_GEOMETRY_H
 
 #include "common.h"
+//1572. Matrix Diagonal Sum
+class Solution1572 {
+public:
+    int diagonalSum(vector<vector<int>>& mat) {
+        if (mat.empty())
+            return 0;
+        int m = mat.size();
+        int result = 0;
+        for (int i=0; i<m; i++) {
+            result += mat[i][i];
+        }
+        for (int i=m-1; i>=0; i--) {
+            result += mat[i][m-1-i];
+        }
+
+        if (m % 2 == 1) {
+            result -= mat[m/2][m/2];
+        }
+
+        return result;
+    }
+};
+
 //48. Rotate Image
 class Solution48 {
 public:
@@ -145,6 +168,34 @@ public:
             digits.insert(digits.begin(), 1);
         }
         return digits;
+    }
+};
+
+//13. Roman to Integer
+class Solution13 {
+public:
+    int romanToInt(string s) {
+        unordered_map<char, int> map{{'I',1}, {'V',5}, {'X',10}, {'L',50}, {'C',100}, {'D',500}, {'M',1000}};
+        int sum = 0;
+        char pre = s[0];
+        char cur = ' ';
+        for (int i=1; i<s.length(); i++) {
+            cur = s[i];
+            if (pre == ' ') {
+                pre = cur;
+            }
+            else if (map[cur]>map[pre]) {
+                sum += map[cur];
+                sum -= map[pre];
+                pre = ' ';
+            }
+            else {
+                sum += map[pre];
+                pre = cur;
+            }
+        }
+        sum += pre==' ' ? 0 : map[pre];
+        return sum;
     }
 };
 
