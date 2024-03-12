@@ -6,6 +6,59 @@
 #define NEETCODE150_MATH_GEOMETRY_H
 
 #include "common.h"
+//168. Excel Sheet Column Title
+class Solution168 {
+public:
+    string convertToTitle(int columnNumber) {
+        string ans;
+        while (columnNumber > 0) {
+            ans += 'A' + (columnNumber - 1) % 26;
+            columnNumber = (columnNumber - 1) / 26;
+        }
+        reverse(ans.begin(), ans.end());
+        return ans;
+    }
+};
+
+//1071. Greatest Common Divisor of Strings
+class Solution1071 {
+public:
+    string gcdOfStrings(string str1, string str2) {
+        if(str1.length() < str2.length()){
+            swap(str1, str2);
+        }
+
+        string ans = "";
+        ushort shortest_length = str2.length();
+        ushort longest_length = str1.length();
+
+        for(ushort i = shortest_length; i > 0; --i)
+        {
+            if (longest_length % i != 0 || shortest_length % i != 0) continue;
+
+            for(ushort j = 0; j < longest_length; ++j)
+            {
+                ushort first_pointer = j % i;
+                ushort second_pointer = j % shortest_length;
+
+                if(str2[first_pointer] != str1[j] || str2[second_pointer] != str1[j])
+                {
+                    ans = "";
+                    break;
+                }
+
+                if(first_pointer == j)
+                    ans += str1[j];
+            }
+
+            if(ans != "")
+                return ans;
+        }
+
+        return "";
+    }
+};
+
 //1572. Matrix Diagonal Sum
 class Solution1572 {
 public:
@@ -26,6 +79,29 @@ public:
         }
 
         return result;
+    }
+};
+
+//149. Max Points on a Line
+class Solution149 {
+public:
+    int maxPoints(vector<vector<int>>& points) {
+        int res = 1;
+        for (int i=0; i<points.size(); ++i) {
+            unordered_map<float, int> count;
+            for (int j=i+1; j<points.size(); ++j) {
+                float s = slope(points[i], points[j]);
+                count[s] ++;
+                res = max(res, count[s] + 1);
+            }
+        }
+        return res;
+    }
+private:
+    float slope(vector<int>& p1, vector<int>& p2) {
+        if ((p2[0] - p1[0]) == 0)
+            return INT_MAX; // aka edge case to handle a slope of infinity
+        return (float) (p2[1] - p1[1]) / (float) (p2[0] - p1[0]);
     }
 };
 
@@ -171,6 +247,71 @@ public:
     }
 };
 
+//9. Palindrome Number
+class Solution9 {
+public:
+    bool isPalindrome(int x) {
+        if(x < 0) return false;
+
+        long div = 1;
+        while(x >= 10 * div)
+            div *= 10;
+
+        while(x) {
+            int right = x % 10;
+            int left = x / div;
+
+            if(left != right) return false;
+
+            x = (x % div) / 10;
+            div = div / 100;
+        }
+        return true;
+    }
+};
+
+//263. Ugly Number
+class Solution263 {
+public:
+    bool isUgly(int n) {
+        if(n <= 0)
+            return false;
+
+        for(int p: {2, 3, 5})
+            while(n % p == 0)
+                n = n / p;
+        return n == 1;
+    }
+};
+
+//1260. Shift 2D Grid
+class Solution1260 {
+public:
+    vector<vector<int>> shiftGrid(vector<vector<int>>& grid, int k) {
+        const int M = grid.size(), N = grid[0].size();
+
+        auto posToVal = [&] (int r, int c) -> int {
+            return r * N + c;};
+        auto valToPos = [&] (int v) -> int* {
+            return new int[] {v / N, v % N};};
+
+        vector<vector<int>> res;
+        for(int r = 0; r < M; r++) {
+            vector<int> row;
+            for(int c = 0; c < N; c++)
+                row.push_back(0);
+            res.push_back(row);
+        }
+        for(int r = 0; r < M; r++)
+            for(int c = 0; c < N; c++) {
+                int newVal = (posToVal(r, c) + k) % (M * N);
+                int *newRC = valToPos(newVal);
+                res[newRC[0]][newRC[1]] = grid[r][c];
+            }
+        return res;
+    }
+};
+
 //13. Roman to Integer
 class Solution13 {
 public:
@@ -199,6 +340,36 @@ public:
     }
 };
 
+//12. Integer to Roman
+class Solution12 {
+public:
+    string intToRoman(int num) {
+        string ans;
+        unordered_map<int, string> V2S{
+                {1000, "M"},
+                {900, "CM"},
+                {500, "D"},
+                {400, "CD"},
+                {100, "C"},
+                {90, "XC"},
+                {50, "L"},
+                {40, "XL"},
+                {10, "X"},
+                {9, "IX"},
+                {5, "V"},
+                {4, "IV"},
+                {1, "I"}
+        };
+        for (auto mo: {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1}) {
+            while (num >= mo) {
+                ans += V2S[mo];
+                num -= mo;
+            }
+        }
+        return ans;
+    }
+};
+
 //50. Pow(x, n)
 class Solution50 {
 public:
@@ -214,7 +385,7 @@ public:
 };
 
 //43. Multiply Strings
-class Solution {
+class Solution43 {
 public:
     string multiply(string num1, string num2) {
         int m = num1.size();
