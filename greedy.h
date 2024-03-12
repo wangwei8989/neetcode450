@@ -45,7 +45,7 @@ public:
 //978. Longest Turbulent Subarray
 class Solution978 {
 public:
-    int maxTurbulenceSize(const std::vector<int>& arr) {
+    int maxTurbulenceSize(const vector<int>& arr) {
         int n = arr.size();
 
         if (n <= 1)
@@ -66,7 +66,7 @@ public:
                 curLength = 2;
             }
 
-            maxLength = std::max(maxLength, curLength);
+            maxLength = max(maxLength, curLength);
             prevCmp = cmp;
         }
 
@@ -114,7 +114,7 @@ public:
         int farthest = 0;
 
         for (int i = 0; i < n - 1; ++i) {
-            farthest = std::max(farthest, i + nums[i]);
+            farthest = max(farthest, i + nums[i]);
 
             if (i == currentEnd) {
                 ++jumps;

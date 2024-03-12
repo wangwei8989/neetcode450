@@ -53,7 +53,7 @@ public:
 public:
     vector<vector<int>> zigzagLevelOrder(TreeNode* root) {
 
-        std ::map<int, std::vector<TreeNode*>>bfs_map;
+        std ::map<int, vector<TreeNode*>>bfs_map;
         vector < vector<int>>result;
 
         if (root !=nullptr)

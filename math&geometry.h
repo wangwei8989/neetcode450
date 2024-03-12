@@ -285,15 +285,18 @@ public:
 };
 
 //1260. Shift 2D Grid
-class Solution1260 {
+/*
+ * class Solution1260 {
 public:
     vector<vector<int>> shiftGrid(vector<vector<int>>& grid, int k) {
         const int M = grid.size(), N = grid[0].size();
 
         auto posToVal = [&] (int r, int c) -> int {
-            return r * N + c;};
+            return r * N + c;
+        };
         auto valToPos = [&] (int v) -> int* {
-            return new int[] {v / N, v % N};};
+            return new int[] {v / N, v % N};
+        };
 
         vector<vector<int>> res;
         for(int r = 0; r < M; r++) {
@@ -311,6 +314,7 @@ public:
         return res;
     }
 };
+ */
 
 //13. Roman to Integer
 class Solution13 {
@@ -442,4 +446,31 @@ public:
 private:
     unordered_map<pair<int, int>, int, pair_hash> points;
 };
+
+//6. Zigzag Conversion
+class Solution6 {
+public:
+    string convert(string s, int n) {
+        // Edge case
+        if(n == 1) return s;
+        // Other cases
+        // Take string to store answer
+        string ans = "";
+        // We are going to traverse each row
+        for(int row = 0; row < n ; row++){
+            // for each row the next chracter is at index 2 *  (n -1)
+            int increment = 2 *  (n -1);
+            // For first and last rows
+            for(int i = row; i < s.length(); i+= increment){
+                ans += s[i];
+                // For middle rows there will be extra characters
+                if(row > 0 && row < n-1 && i+increment - 2 * row < s.length()){
+                    ans += s[i+increment - 2 * row];
+                }
+            }
+        }
+        return ans;
+    }
+};
+
 #endif //NEETCODE150_MATH_GEOMETRY_H

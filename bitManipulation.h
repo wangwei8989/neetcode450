@@ -98,7 +98,7 @@ public:
 class Solution989 {
 public:
     vector<int> addToArrayForm(vector<int>& num, int k) {
-        std::vector<int> result;
+        vector<int> result;
         int n = num.size();
         int carry = 0;
 
@@ -108,7 +108,7 @@ public:
             result.push_back(digit % 10);
         }
 
-        std::reverse(result.begin(), result.end());
+        reverse(result.begin(), result.end());
         return result;
     }
 };
@@ -148,7 +148,7 @@ public:
 class Solution67 {
 public:
     string addBinary(string a, string b) {
-        std::string result;
+        string result;
         int carry = 0;
         int i = a.size() - 1;
         int j = b.size() - 1;
@@ -161,7 +161,7 @@ public:
             carry = sum / 2;
         }
 
-        std::reverse(result.begin(), result.end());
+        reverse(result.begin(), result.end());
         return result;
     }
 };
