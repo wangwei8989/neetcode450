@@ -8,7 +8,7 @@
 #include "common.h"
 
 //50. Pow(x, n)
-class Solution50 {
+class Solution50_recursion {
 public:
     double powBase(double x, int n) {
         if (n == 0)
@@ -394,80 +394,99 @@ public:
     }
 };
 
+//25. Reverse Nodes in k-Group
+class Solution25_recursion {
+public:
+    ListNode* reverseKGroup(ListNode* head, int k) {
+        stack<ListNode*> stk;
+        int remaining = k;
+        ListNode* curr = head;
+        // Push the first k nodes into the stack
+        while (remaining-- && curr != nullptr) {
+            stk.push(curr);
+            curr = curr->next;
+        }
+        // If the remaining nodes are fewer than k, don't reverse, just return the head node
+        if (remaining >= 0) {
+            return head;
+        }
+        // Reverse the first k nodes
+        ListNode* newHead = stk.top();
+        ListNode* prev = nullptr;
+        while (!stk.empty()) {
+            ListNode* node = stk.top();
+            stk.pop();
+            if (prev != nullptr) {
+                prev->next = node;
+            }
+            prev = node;
+        }
+        prev->next = reverseKGroup(curr, k); // Recursively handle the remaining nodes
+        return newHead;
+    }
+};
+
+
 //143. Reorder List
-class Solution143 {
+class Solution143_recursion {
 public:
     void reorderList(ListNode* head) {
-        if (head == nullptr || head->next == nullptr)
-            return;
-
-        auto fast = head;
-        auto slow = head;
-        while (fast->next != nullptr && fast->next->next != nullptr) {
-            fast = fast->next->next;
-            slow = slow->next;
-        }
-        auto secondHalf = reverseList(slow->next);
-        slow->next = nullptr;
-
-        merge(head, secondHalf);
+        helper(head, head);
     }
 
-private:
-    ListNode* reverseList(ListNode* head) {
-        if (head == nullptr || head->next == nullptr)
+    ListNode* helper(ListNode* head, ListNode* tail) {
+        if (tail == nullptr)
             return head;
-        ListNode* prev = nullptr;
-        auto curr = head;
-        while (curr != nullptr) {
-            auto next = curr->next;
-            curr->next = prev;
-            prev = curr;
-            curr = next;
+        ListNode* ans = helper(head, tail->next);
+        if (ans == nullptr)
+            return nullptr;
+        if (ans == tail || ans->next == tail) {
+            tail->next = nullptr;
+            return nullptr;
         }
-        return prev;
-    }
 
-    void merge(ListNode* first, ListNode* second) {
-        if (second == nullptr)
-            return;
-        auto firstNext = first->next;
-        merge(first->next, second->next);
-        first->next = second;
-        second->next = firstNext;
+        tail->next = ans->next;
+        ans->next = tail;
+        return tail->next;
     }
 };
 
 //92. Reverse Linked List II
-class Solution92 {
+class Solution92_recursion {
 public:
-    ListNode* reverseBetween(ListNode* head, int left, int right) {
-        if (head == nullptr || head->next == nullptr)
-            return head;
-        right -= left;
-        auto curr = head;
+    ListNode* reverseList(ListNode* head, ListNode* tail) {
         ListNode* prev = nullptr;
-        while(--left && curr != nullptr) {
-            prev = curr;
-            curr = curr->next;
+        ListNode* cur = head;
+        ListNode* next = nullptr;
+        while (cur!= tail) {
+            next = cur->next;
+            cur->next = prev;
+            prev = cur;
+            cur = next;
         }
-        auto leftNode = prev;
+        return prev;
+    }
 
-        while (right-- >= 0 && curr != nullptr) {
-            auto next = curr->next;
-            curr->next = prev;
-            prev = curr;
-            curr = next;
+    ListNode* reverseBetween(ListNode* head, int left, int right) {
+        if (head == nullptr || head->next== nullptr || left == right)
+            return head;
+        ListNode* lnode = head;
+        ListNode* rnode = head;
+        ListNode* HEAD = new ListNode;
+        ListNode* prev = HEAD;
+        prev->next = head;
+        while (left-->1) {
+            prev = lnode;
+            lnode = lnode->next;
         }
-        if (leftNode != nullptr) {
-            leftNode->next->next = curr;
-            leftNode->next = prev;
+        cout << lnode->val <<endl;
+        while (right-->0) {
+            rnode = rnode->next;
         }
-        else {
-            head->next = curr;
-            head = prev;
-        }
-        return head;
+        //cout << rnode->val <<endl;
+        prev->next = reverseList(lnode, rnode);
+        lnode->next = rnode;
+        return HEAD->next;
     }
 };
 
@@ -594,5 +613,174 @@ public:
 
 199. Binary Tree Right Side View
  */
+
+//2. Add Two Numbers
+// solution2 in linkedlist.h
+
+//231. Power of Two
+class Solution231 {
+public:
+    bool isPowerOfTwo(int n) {
+        if (n<=0)
+            return false;
+        return (n & (n-1)) == 0;
+    }
+};
+
+class Solution231_recursion {
+public:
+    bool isPowerOfTwo(int n) {
+        if (n <= 0) {
+            return false;
+        }
+        if (n == 1) {
+            return true;
+        }
+        if (n % 2 != 0) {
+            return false;
+        }
+        return isPowerOfTwo(n / 2);
+    }
+};
+
+//233. Number of Digit One
+class Solution233 {
+public:
+    int a[20];
+    long long dp[20][10];
+    long long dfs(int pos,int limit,int pre){
+        if(pos==-1){
+            return pre;
+        }
+        if(!limit&&dp[pos][pre]!=-1)return dp[pos][pre];
+        int up=limit?a[pos]:9;
+        int ans=0;
+        for(int i=0;i<=up;++i){
+            if(i==1){
+                ans+=dfs(pos-1,limit&&up==i,pre+1);
+            }
+            else ans+=dfs(pos-1,limit&&up==i,pre);
+        }
+        if(!limit)dp[pos][pre]=ans;
+        return ans;
+    }
+    long long solve(int x){
+        int pos=0;
+        while(x){
+            a[pos++]=x%10;
+            x/=10;
+        }
+        return dfs(pos-1,1,0);
+    }
+    int countDigitOne(int n) {
+        memset(dp,-1,sizeof dp);
+        return solve(n);
+    }
+};
+
+//234. Palindrome Linked List
+class Solution234 {
+    ListNode* left;
+    bool helper(ListNode* right) {
+        if (right != nullptr) {
+            if (!helper(right->next)) {
+                return false;
+            }
+            if (right->val != left->val) {
+                return false;
+            }
+            left = left->next;
+        }
+        return true;
+    }
+
+public:
+    bool isPalindrome(ListNode* head) {
+        left = head;
+        return helper(head);
+    }
+};
+
+//326. Power of Three
+class Solution326 {
+public:
+    bool isPowerOfThree(int n) {
+        if(n < 1)
+            return false;
+        if(n == 1)
+            return true;
+        if(n % 3 == 0)
+            return isPowerOfThree(n/3);
+        else
+            return false;
+    }
+};
+
+//342. Power of Four
+class Solution342 {
+public:
+    bool isPowerOfFour(int n) {
+        return n > 0 && (n & (n - 1)) == 0 && (n & 0xaaaaaaaa) == 0;
+    }
+};
+
+//394. Decode String
+class Solution394 {
+public:
+    string decodeString(string s) {
+        int i = 0;
+        return dfs(s, i);
+    }
+private:
+    string dfs(string s, int& i) {
+        string res;
+        int multi = 0;
+        while (i < s.length()) {
+            if (isdigit(s[i])) {
+                multi = multi * 10 + (s[i] - '0');
+                i++;
+            } else if (s[i] == '[') {
+                i++;
+                string tmp = dfs(s, i);
+                while (multi > 0) {
+                    res += tmp;
+                    multi--;
+                }
+            } else if (s[i] == ']') {
+                i++;
+                return res;
+            } else {
+                res += s[i];
+                i++;
+            }
+        }
+        return res;
+    }
+};
+
+
+//509. Fibonacci Number
+class Solution {
+public:
+    int fib(int n) {
+        if (n < 2)
+            return n;
+        else
+            return fib(n-1) + fib(n-2);
+    }
+
+};
+
+//779. K-th Symbol in Grammar
+class Solution779 {
+public:
+    int kthGrammar(int N, int K) {
+        if (N == 1)
+            return 0;
+
+        int next = kthGrammar(N-1, (K+1) / 2);
+        return next ^ ((K+1) % 2);
+    }
+};
 
 #endif //NEETCODE150_RECURSION_H
