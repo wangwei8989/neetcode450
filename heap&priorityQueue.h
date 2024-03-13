@@ -233,4 +233,113 @@ private:
     priority_queue<int> lower;
     priority_queue<int, vector<int>, greater<int>> higher;
 };
+
+//451. Sort Characters By Frequency
+class Solution451 {
+public:
+    string frequencySort(string s) {
+        unordered_map<char, int> mp;
+        int maxFreq = 0;
+        int length = s.size();
+        for (auto &ch : s) {
+            maxFreq = max(maxFreq, ++mp[ch]);
+        }
+        map<int, string,greater<int>> buckets;
+        for (auto &[ch, num] : mp) {
+            buckets[num].push_back(ch);
+        }
+        string ret;
+        for (auto x: buckets) {
+            string &bucket = x.second;
+            for (auto &ch : x.second) {
+                //string tmp(x.first, ch);
+                ret += string(x.first, ch);
+            }
+        }
+        return ret;
+    }
+};
+
+//692. Top K Frequent Words
+class Solution692 {
+public:
+    vector<string> topKFrequent(vector<string>& words, int k) {
+        unordered_map<string, int> map;
+        for (auto w: words) {
+            map[w]++;
+        }
+        vector<string> vec;
+        for (auto &[k,v]: map) {
+            vec.emplace_back(k);
+        }
+        sort(vec.begin(), vec.end(), [&](string a, string b)->bool{return map[a]>map[b] || (map[a]==map[b] && a<b);});
+        return vector<string>(vec.begin(), vec.begin()+k);
+    }
+};
+
+//871. Minimum Number of Refueling Stops
+class Solution871 {
+public:
+    class IntHeap {
+    public:
+        bool operator()(int a, int b) {
+            return a < b; // Note: C++ priority queues are max heaps by default, so we invert the comparison
+        }
+    };
+
+    int minRefuelStops(int target, int startFuel, vector<vector<int>>& stations) {
+        int fuel = startFuel;
+        if (fuel >= target) {
+            return 0;
+        }
+        int ret = 0;
+        priority_queue<int, vector<int>, IntHeap> total; // Use priority queue as max heap
+
+        for (int i = 0; i < stations.size(); ++i) {
+            while (fuel < stations[i][0]) {
+                if (total.empty()) {
+                    return -1;
+                }
+                fuel += total.top(); // Take out the maximum fuel and use it
+                total.pop();
+                ret++;
+            }
+            total.push(stations[i][1]); // Put the fuel of the current station into the total pool for later use
+        }
+
+        while (fuel < target) {
+            if (total.empty()) {
+                return -1;
+            }
+            fuel += total.top();
+            total.pop();
+            ret++;
+        }
+        return ret;
+    }
+};
+
+//1388. Pizza With 3n Slices
+class Solution1388 {
+public:
+    int rob(vector<int>::iterator begin, int n) {
+        int choose = n / 3;
+        vector<vector<int>> dp(n, vector<int>(choose + 1));
+        for (int i = 1; i < n; ++i) {
+            for (int j = 1; j <= choose; ++j) {
+                dp[i][j] = max(dp[i - 1][j], (i >= 2 ? dp[i - 2][j - 1] : 0) + *(begin+i-1));
+            }
+        }
+        return dp[n-1][choose];
+    }
+
+    int maxSizeSlices(vector<int>& slices) {
+        int n = slices.size();
+        int ans1 = rob(slices.begin() + 1, n);
+        int ans2 = rob(slices.begin(), n);
+        return max(ans1, ans2);
+    }
+};
+
+
 #endif //NEETCODE150_HEAP_PRIORITYQUEUE_H
