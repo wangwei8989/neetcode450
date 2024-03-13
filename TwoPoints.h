@@ -437,5 +437,254 @@ public:
     }
 };
 
+//28. Find the Index of the First Occurrence in a String
+class Solution28 {
+public:
+    int strStr(string haystack, string needle) {
+        if (haystack.size() < needle.size())
+            return -1;
+        if (needle.size() == 0)
+            return 0;
+        int i = 0;
+        int j = 0;
+        while (haystack[i]!=needle[0] && haystack[i]!='\0')
+            i++;
+        while (haystack[i]!='\0' && needle[j]!='\0') {
+            if (haystack[i] == needle[j]) {
+                i++;
+                j++;
+            }
+            else {
+                i = i - j + 1;
+                j = 0;
+            }
+        }
+        if (j == needle.size())
+            return i - j;
+        else
+            return -1;
+    }
+};
+
+//75. Sort Colors
+class Solution75 {
+public:
+    void sortColors(vector<int>& nums) {
+        int len = nums.size();
+        if (len<2)
+            return;
+        int left = 0;
+        int right = len-1;
+
+        int i=0;
+        while (i<=right) {
+            if (nums[i]==0) {
+                swap(nums[left], nums[i]);
+                left++;
+                i++;
+            }
+            else if (nums[i]==1) {
+                i++;
+            }
+            else {
+                swap(nums[right], nums[i]);
+                right--;
+            }
+        }
+    }
+};
+
+//82. Remove Duplicates from Sorted List II
+class Solution82 {
+public:
+    ListNode* deleteDuplicates(ListNode* head) {
+        if (head == nullptr || head->next == nullptr)
+            return head;
+        ListNode* dummy = new ListNode;
+        dummy->next = head;
+
+        ListNode* cur = dummy;
+        while (cur->next && cur->next->next) {
+            if (cur->next->val == cur->next->next->val) {
+                int x = cur->next->val;
+                while (cur->next && x == cur->next->val) {
+                    cur->next = cur->next->next;
+                }
+            }
+            else {
+                cur = cur->next;
+            }
+        }
+        return dummy->next;
+    }
+};
+
+//151. Reverse Words in a String
+class Solution151 {
+public:
+    string reverseWords(string s) {
+        // 反转整个字符串
+        int idx= 0;
+        while (s[idx]==' ')
+            idx++;
+        s.erase(s.begin(), s.begin()+idx);
+        reverse(s.begin(), s.end());
+        idx = 0;
+        while (s[idx]==' ')
+            idx++;
+        s.erase(s.begin(), s.begin()+idx);
+        auto n = s.length();
+        int left = 0;
+        int right = 1;
+        while (right <= n) {
+            if (right == n || s[right] == ' ') {
+                reverse(s.begin()+left, s.begin()+right);
+                left = right+1;
+                if (left>=n)
+                    break;
+                idx = 0;
+                while (s[left+idx]==' ') {
+                    idx++;
+                }
+                if (idx != 0) {
+                    s.erase(s.begin()+left, s.begin()+left+idx);
+                    left = right+1;
+                    n -= idx;
+                }
+                right = left;
+            }
+            right++;
+        }
+        return s;
+    }
+};
+
+//170. Two Sum III - Data structure design
+/*Design and implement a TwoSum class. It should support the following operations: add and find.
+add - Add the number to an internal data structure.
+find - Find if there exists any pair of numbers which sum is equal to the value.
+
+Example 1:
+add(1); add(3); add(5);
+find(4) -> true
+find(7) -> false
+
+ Example 2:
+add(3); add(1); add(2);
+find(3) -> true
+find(6) -> false
+ */
+class TwoSum {
+public:
+    void add(int number) {
+        ++count[number];
+    }
+
+    bool find(int value) {
+        for (const auto& [key, freq] : count) {
+            const int remain = value - key;
+            if (key == remain && freq > 1)
+                return true;
+            if (key != remain && count.count(remain))
+                return true;
+        }
+
+        return false;
+    }
+
+private:
+    unordered_map<int, int> count;
+};
+
+//795. Number of Subarrays with Bounded Maximum
+class Solution795 {
+public:
+    int help(vector<int>& nums, int k) {
+        int left = 0;
+        int right = 0;
+        int ans = 0;
+        while (right<nums.size()) {
+            if (nums[right]>k) {
+                left = right + 1;
+            }
+            ans += right - left;
+            right++;
+        }
+        return ans;
+    }
+    int numSubarrayBoundedMax(vector<int>& nums, int left, int right) {
+        return help(nums, right) - help(nums, left-1);
+    }
+};
+
+//1055.Shortest-Way-to-Form-String
+/*From any string, we can form a subsequence of that string by deleting some number of characters (possibly no deletions).
+
+Given two strings source and target, return the minimum number of subsequences of source such that their concatenation equals target. If the task is impossible, return -1.
+
+Example 1:
+Input: source = "abc", target = "abcbc"
+Output: 2
+Explanation: The target "abcbc" can be formed by "abc" and "bc", which are subsequences of source "abc".
+
+Example 2:
+Input: source = "abc", target = "acdbc"
+Output: -1
+Explanation: The target string cannot be constructed from the subsequences of source string due to the character "d" in target string.
+
+Example 3:
+Input: source = "xyz", target = "xzyxz"
+Output: 3
+Explanation: The target string can be constructed as follows "xz" + "y" + "xz".
+
+Constraints:
+Both the source and target strings consist of only lowercase English letters from "a"-"z".
+The lengths of source and target string are between 1 and 1000.
+ */
+class Solution1055 {
+public:
+    int shortestWay(string source, string target) {
+        int res = 0;
+        int i = 0;
+
+        while (i < target.length()) {
+            int oriI = i;
+            for (char c : source) {
+                if (i < target.length() && c == target[i]) {
+                    i++;
+                }
+            }
+            if (i == oriI) {
+                return -1;
+            }
+            res++;
+        }
+        return res;
+    }
+};
+
+//1147. Longest Chunked Palindrome Decomposition
+class Solution1147 {
+public:
+    int longestDecomposition(string word) {
+        string::iterator left = word.begin();
+        string::iterator right = word.end() -1;
+        int count = 0;
+
+        while (left<right && !word.empty()) {
+            if (string(word.begin(), left+1) == string(right, word.end())) {
+                count++;
+                word = string(left+1, right);
+                left = word.begin();
+                right = word.end()-1;
+            }
+            else {
+                left++;
+                right--;
+            }
+        }
+        return word.empty() ? count * 2 : count * 2 +1;
+    }
+};
 
 #endif //NEETCODE150_TWOPOINTS_H
