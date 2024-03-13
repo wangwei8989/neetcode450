@@ -363,4 +363,236 @@ public:
     }
 };
 
+//95. Unique Binary Search Trees II
+class Solution95 {
+public:
+    vector<TreeNode*> generateTrees(int n) {
+        vector<TreeNode*> result;
+        if (n == 0)
+            return result;
+        else {
+            return helper(1,n);
+        }
+    }
+
+private:
+    vector<TreeNode*> helper(int start, int end) {
+        vector<TreeNode*> ans;
+        if (start>end) {
+            ans.push_back(nullptr);
+            return ans;
+        }
+        for (int i=start; i<=end; i++) {
+            vector<TreeNode*> left = helper(start, i-1);
+            vector<TreeNode*> right = helper(i+1, end);
+
+            for (auto l: left) {
+                for (auto r: right) {
+                    TreeNode* root = new TreeNode(i);
+                    root->left = l;
+                    root->right = r;
+                    ans.push_back(root);
+                }
+            }
+        }
+        return ans;
+    }
+};
+
+//96. Unique Binary Search Trees
+class Solution96 {
+public:
+    int numTrees(int n) {
+        vector<int> G(n + 1, 0);
+        G[0] = 1;
+        G[1] = 1;
+
+        for (int i = 2; i <= n; ++i) {
+            for (int j = 1; j <= i; ++j) {
+                G[i] += G[j - 1] * G[i - j];
+            }
+        }
+        return G[n];
+    }
+};
+
+//98. Validate Binary Search Tree
+class Solution98 {
+    bool dfs(TreeNode* root, long left = LONG_MIN, long right = LONG_MAX) {
+        if (root == nullptr)
+            return true;
+        if (root->val > left && root->val < right) {
+            return dfs(root->left, left, root->val) &&
+                   dfs(root->right, root->val, right);
+        }
+        return false;
+    }
+public:
+    bool isValidBST(TreeNode* root) {
+        return dfs(root);
+    }
+};
+
+//108. Convert Sorted Array to Binary Search Tree
+class Solution {
+public:
+    TreeNode* sortedArrayToBST(const std::vector<int>& nums) {
+        if (nums.empty()) {
+            return nullptr;
+        }
+
+        return Helper(nums, 0, nums.size() - 1);
+    }
+
+private:
+    TreeNode* Helper(const std::vector<int>& nums, int left, int right) {
+        if (left > right) {
+            return nullptr;
+        }
+
+        // Choose the middle element as the root
+        int mid = left + (right - left) / 2;
+        TreeNode* root = new TreeNode(nums[mid]);
+
+        // Recursively construct left and right subtrees
+        root->left = Helper(nums, left, mid - 1);
+        root->right = Helper(nums, mid + 1, right);
+
+        return root;
+    }
+};
+
+//173. Binary Search Tree Iterator
+class BSTIterator {
+public:
+    queue<int> q;
+    int Traversal(TreeNode* root) {
+        if(nullptr == root) {
+            return 0;
+        }
+        stack<TreeNode*> s;
+        TreeNode* step = root;
+        while(nullptr != step || !s.empty()) {
+            while(nullptr != step) {
+                s.push(step);
+                step = step->left;
+            }
+            if(!s.empty()) {
+                TreeNode* temp = s.top();
+                s.pop();
+                q.push(temp->val);
+                step = temp->right;
+            }
+        }
+        return 0;
+    }
+    BSTIterator(TreeNode* root) {
+        Traversal(root);
+    }
+
+    /** @return the next smallest number */
+    int next() {
+        int res = q.front();
+        q.pop();
+        return res;
+    }
+
+    /** @return whether we have a next smallest number */
+    bool hasNext() {
+        return !q.empty();
+    }
+};
+
+//235. Lowest Common Ancestor of a Binary Search Tree
+class Solution235 {
+public:
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+        if (p->val < root->val && q->val < root->val)
+            return lowestCommonAncestor(root->left, p, q);
+        else if (p->val > root->val && q->val > root->val)
+            return lowestCommonAncestor(root->right, p, q);
+        else
+            return root;
+    }
+};
+
+//701. Insert into a Binary Search Tree
+class Solution701 {
+public:
+    TreeNode* insertIntoBST(TreeNode* root, int val) {
+        if(nullptr == root) {
+            root = new TreeNode(val);
+            return root;
+        }
+        if(val == root->val) {
+            return nullptr;
+        }else if(val < root->val) {
+            if(nullptr == root->left) {
+                root->left = new TreeNode(val);
+            } else {
+                insertIntoBST(root->left, val);
+            }
+        }else {
+            if(nullptr == root->right) {
+                root->right = new TreeNode(val);
+            } else {
+                insertIntoBST(root->right, val);
+            }
+        }
+        return root;
+    }
+};
+
+//703. Kth Largest Element in a Stream
+class KthLargest_binarySearch {
+public:
+    KthLargest_binarySearch(int k, vector<int>& nums) {
+        this->k = k;
+        for (auto& num: nums) {
+            pq.push(num);
+        }
+        while (pq.size() > this->k) {
+            pq.pop();
+        }
+    }
+
+    int add(int val) {
+        pq.push(val);
+        if (pq.size() > k) {
+            pq.pop();
+        }
+        return pq.top();
+    }
+
+private:
+    priority_queue<int, vector<int>, greater<int>> pq;
+    int k;
+};
+
+//1008. Construct Binary Search Tree from Preorder Traversal
+class Solution1008 {
+public:
+    TreeNode* bstFromPreorder(vector<int>& preorder) {
+        return dfs(preorder, 0, preorder.size() - 1);
+    }
+
+private:
+    TreeNode* dfs(const vector<int>& preorder, int start, int end) {
+        if (start > end) {
+            return nullptr;
+        }
+        TreeNode* root = new TreeNode(preorder[start]);
+        // Find the index of the first element greater than the root value
+        int i;
+        for (i = start + 1; i <= end; ++i) {
+            if (preorder[i] > root->val) {
+                break;
+            }
+        }
+        // Recursively build the left and right subtrees
+        root->left = dfs(preorder, start + 1, i - 1);
+        root->right = dfs(preorder, i, end);
+        return root;
+    }
+};
 #endif //NEETCODE150_BINARYSEARCH_H
