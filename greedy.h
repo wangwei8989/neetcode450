@@ -43,9 +43,9 @@ public:
 };
 
 //978. Longest Turbulent Subarray
-class Solution978 {
+class Solution978_greedy {
 public:
-    int maxTurbulenceSize(const vector<int>& arr) {
+    int maxTurbulenceSize(const std::vector<int>& arr) {
         int n = arr.size();
 
         if (n <= 1)
@@ -66,7 +66,7 @@ public:
                 curLength = 2;
             }
 
-            maxLength = max(maxLength, curLength);
+            maxLength = std::max(maxLength, curLength);
             prevCmp = cmp;
         }
 
@@ -114,7 +114,7 @@ public:
         int farthest = 0;
 
         for (int i = 0; i < n - 1; ++i) {
-            farthest = max(farthest, i + nums[i]);
+            farthest = std::max(farthest, i + nums[i]);
 
             if (i == currentEnd) {
                 ++jumps;
@@ -131,7 +131,7 @@ public:
 };
 
 //1871. Jump Game VII
-class Solution1871 {
+class Solution1871_greedy {
 public:
     bool canReach(string s, int minJump, int maxJump) {
         if (s.back() == '1')
@@ -292,6 +292,129 @@ public:
             tick++;
             ans++;
         }
+        return ans;
+    }
+};
+
+//122. Best Time to Buy and Sell Stock II
+class Solution122 {
+public:
+    int maxProfit(vector<int>& prices) {
+        int buy = INT_MIN, sell = 0;
+        // 因为需要多次买卖，所以每天都要尝试是否能获得更多利润
+        for (auto& p : prices)
+        {
+            buy = max(buy, sell - p);
+            sell = max(sell, buy + p);
+        }
+        return sell;
+    }
+};
+
+//134. Gas Station
+class Solution134 {
+public:
+    int canCompleteCircuit(vector<int>& gas, vector<int>& cost) {
+        int n = gas.size();
+
+        int totalGas = 0;
+        int currentGas = 0;
+        int startStation = 0;
+
+        for (int i = 0; i < n; ++i) {
+            totalGas += gas[i] - cost[i];
+            currentGas += gas[i] - cost[i];
+
+            // If you can't reach the next station, update the start station
+            if (currentGas < 0) {
+                currentGas = 0;
+                startStation = i + 1;
+            }
+        }
+
+        // If the total gas is negative, there is no solution
+        return (totalGas >= 0) ? startStation % n : -1;
+    }
+};
+
+//409. Longest Palindrome
+class Solution409 {
+public:
+    int longestPalindrome(string s) {
+        unordered_map<char, int> map;
+        for (auto c:s) {
+            map[c]++;
+        }
+
+        int cnt = 0;
+        int odd = 0;
+        for (auto &[c, n]: map) {
+            //if (!(n&1)) {
+            cnt += n/2 *2;
+            //}
+            //else {
+            //    odd++;
+            //}
+            if (n % 2 == 1 and cnt % 2 == 0)
+                ++cnt;
+        }
+        return cnt;
+    }
+};
+
+//561. Array Partition
+class Solution561 {
+public:
+    int arrayPairSum(vector<int>& nums) {
+        sort(nums.begin(), nums.end());
+        int result =0;
+        for (int i=0; i<nums.size(); i+=2) {
+            result += nums[i];
+        }
+        return result;
+    }
+};
+
+//1055.Shortest-Way-to-Form-String
+/*
+ From any string, we can form a subsequence of that string by deleting some number of characters (possibly no deletions).
+Given two strings source and target, return the minimum number of subsequences of source such that their concatenation equals target. If the task is impossible, return -1.
+
+Example 1:
+Input: source = "abc", target = "abcbc"
+Output: 2
+Explanation: The target "abcbc" can be formed by "abc" and "bc", which are subsequences of source "abc".
+
+Example 2:
+Input: source = "abc", target = "acdbc"
+Output: -1
+Explanation: The target string cannot be constructed from the subsequences of source string due to the character "d" in target string.
+
+Example 3:
+Input: source = "xyz", target = "xzyxz"
+Output: 3
+Explanation: The target string can be constructed as follows "xz" + "y" + "xz".
+
+Constraints:
+Both the source and target strings consist of only lowercase English letters from "a"-"z".
+The lengths of source and target string are between 1 and 1000.
+ */
+class Solution1055 {
+public:
+    int shortestWay(string source, string target) {
+        int ans = 0;
+
+        for (int i = 0; i < target.length();) {
+            const int prevIndex = i;
+            for (int j = 0; j < source.length(); ++j)
+                if (i < target.length() && source[j] == target[i])
+                    ++i;
+            // All chars in source didn't match target[i]
+            if (i == prevIndex)
+                return -1;
+            ++ans;
+        }
+
         return ans;
     }
 };
