@@ -39,18 +39,18 @@ private:
 //39. Combination Sum
 class Solution39 {
 public:
-    vector<vector<int>> combinationSum(vector<int>& candidates, int target) {
+    std::vector<std::vector<int>> combinationSum(std::vector<int>& candidates, int target) {
         //sort the candidates array before backtrack can be more efficient.
-        sort(candidates.begin(), candidates.end());
-        vector<vector<int>> result;
-        vector<int> subSet;
+        std::sort(candidates.begin(), candidates.end());
+        std::vector<std::vector<int>> result;
+        std::vector<int> subSet;
         backtrack(candidates, target, 0, result, subSet);
         return result;
     }
 
 private:
-    void backtrack(const vector<int>& candidates, int target, int start,
-                   vector<vector<int>>& result, vector<int>& subSet) {
+    void backtrack(const std::vector<int>& candidates, int target, int start,
+                   std::vector<std::vector<int>>& result, std::vector<int>& subSet) {
         if (target == 0) {
             result.push_back(subSet);
             return;
@@ -246,16 +246,16 @@ private:
 class Solution40 {
 public:
     vector<vector<int>> combinationSum2(vector<int>& candidates, int target) {
-        sort(candidates.begin(), candidates.end());
-        vector<vector<int>> result;
-        vector<int> subSet;
+        std::sort(candidates.begin(), candidates.end());
+        std::vector<std::vector<int>> result;
+        std::vector<int> subSet;
         backtrack(candidates, target, 0, result, subSet);
         return result;
     }
 
 private:
-    void backtrack(const vector<int>& candidates, int target, int start,
-                   vector<vector<int>>& result, vector<int>& subSet) {
+    void backtrack(const std::vector<int>& candidates, int target, int start,
+                   std::vector<std::vector<int>>& result, std::vector<int>& subSet) {
         if (target == 0) {
             result.push_back(subSet);
             return;
@@ -434,5 +434,203 @@ public:
     }
 };
 
+//37. Sudoku Solver
+class Solution37 {
+    vector<set<int>> row;
+    vector<set<int>> col;
+    vector<set<int>> box;
+    vector<pair<int, int>> dots;
+public:
+    bool dfs(vector<pair<int, int>>::iterator itor, vector<pair<int, int>>::iterator end,
+             vector<vector<char>>& board) {
+        if (itor == end) {
+            return true;
+        }
+
+        int i= (*itor).first;
+        int j = (*itor).second;
+        for (int num=1; num<=9; num++) {
+            if (row[i].count(num) || col[j].count(num) || box[(i/3)*3 + j/3].count(num))
+                continue;
+            row[i].insert(num);
+            col[j].insert(num);
+            box[(i/3)*3 + j/3].insert(num);
+            board[i][j] = '0' + num;
+            if (dfs(itor+1,end, board))
+                return true;
+            row[i].erase(num);
+            col[j].erase(num);
+            box[(i/3)*3 + j/3].erase(num);
+        }
+        return false;
+    }
+
+    void solveSudoku(vector<vector<char>>& board) {
+        row.resize(9);
+        col.resize(9);
+        box.resize(9);
+
+        for (int i =0; i<9; i++) {
+            for (int j =0; j<9; j++) {
+                if (board[i][j] != '.') {
+                    row[i].insert(board[i][j] - '0');
+                    col[j].insert(board[i][j] - '0');
+                    box[(i/3)*3 + j/3].insert(board[i][j] - '0');
+                }
+                else {
+                    dots.emplace_back(i,j);
+                }
+            }
+        }
+
+        dfs(dots.begin(),dots.end(), board);
+    }
+};
+
+//89. Gray Code
+class Solution89 {
+public:
+    vector<int> grayCode(int n) {
+        if (n==0)
+            return vector<int> ();
+        vector<int> ans{0,1};
+
+        for (int i=2; i<=n; i++) {
+            vector<int> tmp = ans;
+            reverse(tmp.begin(), tmp.end());
+            for (auto num : tmp) {
+                ans.push_back((1 << (i-1)) | num);
+            }
+        }
+
+        return ans;
+    }
+};
+
+//357. Count Numbers with Unique Digits
+class Solution357 {
+public:
+    int countNumbersWithUniqueDigits(int n) {
+        if (n == 0) return 1;
+        int a = 1, b = 9;
+        for (int i = 2; i <= n; ++i) {
+            a += b;
+            b *= (11 - i);
+        }
+        return b+a;
+    }
+};
+
+//494. Target Sum
+class Solution494 {
+public:
+    long findTargetSumWays_dfs(vector<int>::iterator begin,
+                               vector<int>::iterator end, long S) {
+        if (begin + 1 == end) {
+            if (S == 0 && *begin== 0)
+                return 2;
+            else if (S == *begin || S == -*begin)
+                return 1;
+            else
+                return 0;
+        }
+
+        return findTargetSumWays_dfs(begin+1, end, S+*begin) +
+               findTargetSumWays_dfs(begin+1, end, S-*begin);
+    }
+
+    int findTargetSumWays(vector<int>& nums, int S) {
+        return findTargetSumWays_dfs(nums.begin(), nums.end(), S);
+    }
+
+};
+
+//784. Letter Case Permutation
+class Solution784 {
+public:
+    void dfs_helper(int step, string S, string& path, vector<string>& result) {
+        while (step<S.length() && isdigit(S[step])) {
+            path.push_back(S[step++]);
+        }
+        if (step == S.length()) {
+            result.push_back(path);
+            return;
+        }
+
+        path.push_back(islower(S[step]) ? S[step]: tolower(S[step]));
+        dfs_helper(step+1, S, path, result);
+        while (isdigit(path.back()))
+            path.pop_back();
+        path.pop_back();
+
+        path.push_back(islower(S[step]) ? toupper(S[step]): S[step]);
+        dfs_helper(step+1, S, path, result);
+        while (isdigit(path.back()))
+            path.pop_back();
+        path.pop_back();
+    }
+    vector<string> letterCasePermutation(string S) {
+        vector<string> result;
+        string path;
+        dfs_helper(0, S, path, result);
+        return result;
+    }
+};
+
+//1079. Letter Tile Possibilities
+class Solution1079 {
+public:
+    int dfs(unordered_map<char, int> &map) {
+        int ans = 0;
+        for (auto &it: map) {
+            if (it.second==0)
+                continue;
+            ans++;
+            it.second--;
+            ans += dfs(map);
+            it.second++;
+        }
+        return ans;
+    }
+
+    int numTilePossibilities(string tiles) {
+        unordered_map<char,int> map;
+        for(auto ch: tiles) {
+            map[ch]++;
+        }
+        return dfs(map);
+    }
+};
+
+//1593. Split a String Into the Max Number of Unique Substrings
+
+class Solution1593 {
+public:
+    int maxUniqueSplit(string s) {
+        dfs(s, 0);
+        return ans;
+    }
+
+    void dfs(string& s, int pos) {
+        if (s.size() - pos + us.size() <= ans) return;
+        if (pos == s.size()) {
+            ans = max(ans, (int)us.size());
+            return;
+        }
+
+        string temp;
+        for (int i = pos; i < s.size(); i++) {
+            temp += s[i];
+            if (us.find(temp) == us.end()) {
+                us.insert(temp);
+                dfs(s, i + 1);
+                us.erase(temp);
+            }
+        }
+    }
+private:
+    int ans = 0;
+    unordered_set<string> us;
+};
 
 #endif //NEETCODE150_BACKTRACK_H
