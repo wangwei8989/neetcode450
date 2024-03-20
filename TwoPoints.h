@@ -273,10 +273,7 @@ public:
                     continue;
                 int l = j + 1, r = n - 1;
                 while (l < r) {
-                    long sm = static_cast<long>(nums[i]) +
-                              static_cast<long>(nums[j]) +
-                              static_cast<long>(nums[l]) +
-                              static_cast<long>(nums[r]);
+                    long sm = static_cast<long>(nums[i]) + nums[j] + nums[l] + nums[r];
                     if (sm == target) {
                         res.push_back(vector<int>{nums[i], nums[j], nums[l], nums[r]});
                         l += 1;
@@ -371,16 +368,25 @@ public:
 class Solution1968 {
 public:
     vector<int> rearrangeArray(vector<int>& nums) {
-        for(int i=1;i<nums.size()-1;i++){
-            int a=nums[i-1];
-            int b=nums[i];
-            int c=nums[i+1];
-            if(a>b && b>c || a<b && b<c)
-            {
-                swap(nums[i],nums[i+1]);
+        sort(nums.begin(), nums.end()); // Sort the array
+
+        int n = nums.size();
+        int left = 0, right = n - 1;
+
+        vector<int> result(n);
+        int i = 0;
+
+        while (left <= right) {
+            // Pick element from the beginning of the sorted array
+            result[i++] = nums[left++];
+
+            // Pick element from the end of the sorted array
+            if (i < n) {
+                result[i++] = nums[right--];
             }
         }
-        return nums;
+
+        return result;
     }
 };
 
@@ -523,39 +529,31 @@ public:
 class Solution151 {
 public:
     string reverseWords(string s) {
-        // 反转整个字符串
-        int idx= 0;
-        while (s[idx]==' ')
-            idx++;
-        s.erase(s.begin(), s.begin()+idx);
-        reverse(s.begin(), s.end());
-        idx = 0;
-        while (s[idx]==' ')
-            idx++;
-        s.erase(s.begin(), s.begin()+idx);
-        auto n = s.length();
-        int left = 0;
-        int right = 1;
-        while (right <= n) {
-            if (right == n || s[right] == ' ') {
-                reverse(s.begin()+left, s.begin()+right);
-                left = right+1;
-                if (left>=n)
-                    break;
-                idx = 0;
-                while (s[left+idx]==' ') {
-                    idx++;
-                }
-                if (idx != 0) {
-                    s.erase(s.begin()+left, s.begin()+left+idx);
-                    left = right+1;
-                    n -= idx;
-                }
-                right = left;
-            }
-            right++;
+        // Trim leading and trailing spaces
+        s.erase(0, s.find_first_not_of(' '));
+        s.erase(s.find_last_not_of(' ') + 1);
+
+        // Split the string into words
+        vector<string> words;
+        istringstream iss(s);
+        string word;
+        while (iss >> word) {
+            words.push_back(word);
         }
-        return s;
+
+        // Reverse the order of the words
+        reverse(words.begin(), words.end());
+
+        // Join the words back together into a single string
+        string result;
+        for (const string& w : words) {
+            if (!result.empty()) {
+                result += ' ';
+            }
+            result += w;
+        }
+
+        return result;
     }
 };
 
@@ -618,8 +616,8 @@ public:
 };
 
 //1055.Shortest-Way-to-Form-String
-/*From any string, we can form a subsequence of that string by deleting some number of characters (possibly no deletions).
-
+/*
+ From any string, we can form a subsequence of that string by deleting some number of characters (possibly no deletions).
 Given two strings source and target, return the minimum number of subsequences of source such that their concatenation equals target. If the task is impossible, return -1.
 
 Example 1:
@@ -684,6 +682,49 @@ public:
             }
         }
         return word.empty() ? count * 2 : count * 2 +1;
+    }
+};
+
+//557. Reverse Words in a String III
+class Solution557 {
+public:
+    string reverseWords(string s) {
+        int left = 0;
+        int right = 0;
+        for (int i = 0; i < s.size(); i++) {
+            if (s[i] == ' ') {
+                right = i;
+                reverse(s.begin() + left, s.begin() + right);
+                left = right + 1;
+            }
+            if (i==s.size() - 1) {
+                right = i + 1;
+                reverse(s.begin() + left, s.begin() + right);
+            }
+        }
+        return s;
+    }
+};
+
+//763. Partition Labels
+class Solution763 {
+public:
+    vector<int> partitionLabels(string s) {
+        unordered_map<char, int> m;
+        vector<int> ans;
+        int left = 0;
+        int right = 0;
+        for (int i=0; i<s.length(); i++) {
+            if (m.count(s[i])==0) {
+                m[s[i]] = s.find_last_of(s[i]);
+            }
+            right = max(right, m[s[i]]);
+            if (i==right) {
+                ans.push_back(right - left + 1);
+                left = right + 1;
+            }
+        }
+        return ans;
     }
 };
 
