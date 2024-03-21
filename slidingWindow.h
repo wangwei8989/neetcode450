@@ -63,19 +63,25 @@ class Solution1343 {
 public:
     int numOfSubarrays(vector<int>& arr, int k, int threshold) {
         int sum = 0;
-        int n = arr.size();
-        for(int i=0;i<k;i++){
+        for(int i = 0; i < k;i++){
             sum += arr[i];
         }
+
+        int res = 0;
+        threshold *= k;
+        if(sum >= threshold)
+            res++;
+
         int left = 0;
         int right = k;
-        int res = 0;
-        if(sum/k >= threshold) res++;
+        int n = arr.size();
         while(right < n){
             sum -= arr[left++];
             sum += arr[right++];
-            if(sum/k >= threshold) res++;
+            if(sum >= threshold)
+                res++;
         }
+
         return res;
     }
 };
@@ -84,26 +90,21 @@ public:
 class Solution424 {
 public:
     int characterReplacement(string s, int k) {
-        vector<int> count(26);
+        int maxLength = 0;
         int maxCount = 0;
-
-        int i = 0;
-        int j = 0;
-
-        int result = 0;
-
-        while (j < s.size()) {
-            count[s[j] - 'A']++;
-            maxCount = max(maxCount, count[s[j] - 'A']);
-            if (j - i + 1 - maxCount > k) {
-                count[s[i] - 'A']--;
-                i++;
+        unordered_map<char, int> freqMap;
+        int left = 0;
+        for (int right = 0; right < s.size(); ++right) {
+            freqMap[s[right]]++;
+            maxCount = max(maxCount, freqMap[s[right]]);
+            if (right - left + 1 - maxCount > k) {
+                freqMap[s[left]]--;
+                left++;
             }
-            result = max(result, j - i + 1);
-            j++;
+            maxLength = max(maxLength, right - left + 1);
         }
 
-        return result;
+        return maxLength;
     }
 };
 
@@ -111,39 +112,30 @@ public:
 class Solution567 {
 public:
     bool checkInclusion(string s1, string s2) {
-        int m = s1.size();
-        int n = s2.size();
-        if (m > n) {
+        int n1 = s1.length();
+        int n2 = s2.length();
+        if (n1 > n2)
             return false;
-        }
 
-        vector<int> count(26);
-        for (int i = 0; i < m; i++) {
-            count[s1[i] - 'a']++;
-            count[s2[i] - 'a']--;
+        vector<int> freq1(26, 0);
+        vector<int> freq2(26, 0);
+        for (char c : s1) {
+            freq1[c - 'a']++;
         }
-        if (isPermutation(count)) {
-            return true;
+        for (int i = 0; i < n1; i++) {
+            freq2[s2[i] - 'a']++;
         }
-
-        for (int i = m; i < n; i++) {
-            count[s2[i] - 'a']--;
-            count[s2[i - m] - 'a']++;
-            if (isPermutation(count)) {
+        for (int i = 0; i <= n2 - n1; i++) {
+            if (freq1 == freq2) {
                 return true;
+            }
+            freq2[s2[i] - 'a']--;
+            if (i + n1 < n2) {
+                freq2[s2[i + n1] - 'a']++;
             }
         }
 
         return false;
-    }
-private:
-    bool isPermutation(vector<int>& count) {
-        for (int i = 0; i < 26; i++) {
-            if (count[i] != 0) {
-                return false;
-            }
-        }
-        return true;
     }
 };
 
@@ -152,22 +144,21 @@ class Solution1838 {
 public:
     int maxFrequency(vector<int>& nums, long long k) {
         sort(nums.begin(),nums.end());
-        int l=0;
-        int r=0;
-        int res=0;
-        long long total=0;
-        int n=nums.size();
-        while(r<n){
-            total += nums[r];
-
-            while(static_cast<long>((r-l+1)*nums[r]) > total+k){
-                total -= nums[l];
-                l++;
+        int left = 0;
+        int right = 0;
+        int res = 0;
+        long long total = 0;
+        int n = nums.size();
+        while (right < n){
+            total += nums[right];
+            while (static_cast<long>((right-left+1)*nums[right]) > total + k){
+                total -= nums[left];
+                left++;
             }
-
-            res=max(res,r-l+1);
-            r++;
+            res = max(res, right-left+1);
+            right++;
         }
+
         return res;
     }
 };
@@ -177,50 +168,45 @@ class Solution904 {
 public:
     int totalFruit(vector<int>& fruits) {
         unordered_map<int, int> map;
-        typedef unordered_map<int, int> maptype;
         int left = 0;
         int right = 0;
         int ans = 0;
-        while (right<fruits.size()) {
-            map[fruits[right]] = right;
-            if(map.size()>2) {
-                ans = max(ans, right-left);
-                auto it = min_element(map.begin(), map.end(),
-                                      [](maptype::const_reference p, maptype::const_reference q){
-                                          return p.second < q.second;
-                                      });
-
-                left = max(left, it->second+1);
-                map.erase(it->first);
+        while (right < fruits.size()) {
+            map[fruits[right]]++;
+            while (map.size() > 2) {
+                map[fruits[left]]--;
+                if (map[fruits[left]] == 0) {
+                    map.erase(fruits[left]);
+                }
+                left++;
             }
             right++;
+            ans = max(ans, right - left);
         }
-        return max(ans, right-left);
+
+        return ans;
     }
 };
 
 //1456. Maximum Number of Vowels in a Substring of Given Length
 class Solution1456 {
 public:
-    bool isvowel(char ch) {
-        if (ch == 'a' || ch == 'e' || ch == 'i' || ch == 'o' || ch == 'u')
-            return true;
-        return false;
-    }
-
     int maxVowels(string s, int k) {
         int cnt = 0;
         int left = 0;
-        int max_cnt = cnt;
+        int right = 0;
+        int max_cnt = 0;
+        unordered_set<char> vowels = {'a', 'e', 'i', 'o', 'u'};
 
-        for (int right=0; right<s.length(); right++) {
-            if(isvowel(s[right])) {
+        while (right<s.length()) {
+            if(vowels.count(s[right])) {
                 cnt++;
             }
-            if (right>=k && isvowel(s[right-k])) {
+            if (right>=k && vowels.count(s[right-k])) {
                 cnt--;
             }
             max_cnt = max(max_cnt, cnt);
+            right++;
         }
         return max_cnt;
     }
@@ -250,9 +236,9 @@ public:
 class Solution76 {
 public:
     string minWindow(string s, string t) {
-        unordered_map<char, int> m;
+        unordered_map<char, int> targetMap;
         for (auto c: t) {
-            m[c]++;
+            targetMap[c]++;
         }
         int left = 0;
         int right = 0;
@@ -260,18 +246,18 @@ public:
         int minLength = INT_MAX;
         int counter = t.length();
         while (right < s.length()) {
-            if (m[s[right]] > 0) {
+            if (targetMap[s[right]] > 0) {
                 counter--;
             }
-            m[s[right]]--;
+            targetMap[s[right]]--;
             right++;
             while (counter == 0) {
                 if (minLength > right - left) {
                     minLength = right - left;
                     minStart = left;
                 }
-                m[s[left]]++;
-                if (m[s[left]] > 0) {
+                targetMap[s[left]]++;
+                if (targetMap[s[left]] > 0) {
                     counter++;
                 }
                 left++;
@@ -356,28 +342,27 @@ class Solution159 {
 public:
     int lengthOfLongestSubstringTwoDistinct(string s) {
         int n = s.length();
-        if (n < 3) return n;
+        if (n < 3)
+            return n;
 
         int left = 0;
         int right = 0;
-
-        std::unordered_map<char, int> hashmap;
-
+        unordered_map<char, int> freqMap;
         int max_len = 2;
+        int distinctCount = 0;
 
         while (right < n) {
-            if (hashmap.size() < 3) {
-                hashmap[s[right]] = right++;
-            }
+            freqMap[s[right]]++;
+            if (freqMap[s[right]] == 1)
+                distinctCount++;
 
-            if (hashmap.size() == 3) {
-                auto del_it = std::min_element(hashmap.begin(), hashmap.end(),
-                                               [](const auto& a, const auto& b) { return a.second < b.second; });
-                hashmap.erase(del_it->first);
-                left = del_it->second + 1;
+            while (distinctCount > 2) {
+                freqMap[s[left]]--;
+                if (freqMap[s[left]] == 0)
+                    distinctCount--;
+                left++;
             }
-
-            max_len = max(max_len, right - left);
+            max_len = max(max_len, ++right - left);
         }
 
         return max_len;
@@ -387,106 +372,65 @@ public:
 //220. Contains Duplicate III
 class Solution220 {
 public:
-    long long size;
-    bool containsNearbyAlmostDuplicate(vector <int> & nums, int k, int t) {
-        unordered_map<int, long long> m;
-        size = t + 1L;
-        for (int i = 0; i < nums.size(); i++) {
-            int idx = getIdx(nums[i]);
-            if (m.find(idx) != m.end())
+    bool containsNearbyAlmostDuplicate(vector<int>& nums, int indexDiff, int valueDiff) {
+        set<long long> window;
+        int left = 0;
+        int right = 0;
+        while (right < nums.size()) {
+            if (right - left > indexDiff)
+                window.erase(nums[left++]);
+            //find x in window as abs(x-nums[right]) <= valueDiff
+            auto it = window.lower_bound(static_cast<long long>(nums[right]) - valueDiff);
+            if (it != window.end() && *it <= static_cast<long long>(nums[right]) + valueDiff)
                 return true;
-            int l = idx - 1, r = idx + 1;
-            if (m.find(l) != m.end() && abs(nums[i] - m[l]) <= t)
-                return true;
-            if (m.find(r) != m.end() && abs(nums[i] - m[r]) <= t)
-                return true;
-            m[idx] = nums[i];
-            if (i >= k)
-                m.erase(getIdx(nums[i - k]));
+            window.insert(nums[right]);
         }
-        return false;
-    }
-    int getIdx(long long u) {
-        return u >= 0 ? u / size : ((u + 1) / size) - 1;
-    }
-};
 
-//340-longest-substring-with-at-most-k-distinct-characters
-/*
-Given a string, find the length of the longest substring T that contains at most k distinct characters.
-Example:
- Given s = “eceba” and k = 2,
-T is "ece" which its length is 3.
- */
-class Solution340 {
-public:
-    int lengthOfLongestSubstringKDistinct(std::string s, int k) {
-        if (k == 0) return 0;
-        std::unordered_map<char, int> map;
-        int left = 0, right = 0;
-        int max_len = 0, n = s.length();
-        while (right < n) {
-            map[s[right]] = right;
-            if (map.size() > k) {
-                int left_most = INT_MAX;
-                for (auto& pair : map) {
-                    left_most = std::min(left_most, pair.second);
-                }
-                map.erase(s[left_most]);
-                left = left_most + 1;
-            }
-            right++;
-            max_len = std::max(max_len, right - left);
-        }
-        return max_len;
+        return false;
     }
 };
 
 //438. Find All Anagrams in a String
 class Solution438 {
 public:
-    bool checker(unordered_map<char, int>& lfh, unordered_map<char, int>& rfh) {
-        for (auto itor: rfh) {
-            if (lfh[itor.first] != itor.second)
-                return false;
-        }
-        return true;
-    }
-
     vector<int> findAnagrams(string s, string p) {
-        unordered_map<char, int> mapp;
-        for (auto c: p) {
-            mapp[c]++;
-        }
-        vector<int> res;
+        vector<int> result;
+        if (s.empty() || p.empty() || s.size() < p.size())
+            return result;
 
-        int left =0;
-        int right =0;
-        unordered_map<char, int> maps;
-        while (right<s.length()) {
-            if (mapp.count(s[right])) {
-                maps[s[right]]++;
-                if (checker(maps, mapp)) {
-                    res.push_back(left);
-                }
-            }
-            right++;
-            if (right-left>=p.length()) {
-                maps[s[left]]--;
-                left++;
-            }
+        unordered_map<char, int> pFreq;
+        for (char c : p) {
+            pFreq[c]++;
         }
-        return res;
+
+        int left = 0, right = 0;
+        int count = p.size();
+
+        while (right < s.size()) {
+            // Expand the window
+            if (pFreq[s[right++]]-- >= 1)
+                count--;
+
+            // Check if the window size matches with p
+            if (count == 0)
+                result.push_back(left);
+
+            // Shrink the window
+            if (right - left == p.size() && pFreq[s[left++]]++ >= 0)
+                count++;
+        }
+
+        return result;
     }
 };
 
 //487. Max Consecutive Ones II
 /*
- The problem is about finding the longest sequence of consecutive 1s
- in a binary array, under the condition that we are allowed to flip
- at most one 0 to 1. This task tests our ability to manipulate
- subarrays in a binary context and optimize our approach to account
- for small alterations in the array to achieve the desired outcome.
+ The problem is about finding the longest sequence of consecutive 1s in a binary array,
+ under the condition that we are allowed to flip at most one 0 to 1. This task tests
+ our ability to manipulate subarrays in a binary context and optimize our approach to
+ account for small alterations in the array to achieve the desired outcome.
+
  example:
 Input: [1,0,1,1,0]
 Output: 4
@@ -496,20 +440,29 @@ Flip the first zero will get the the maximum number of consecutive 1s.
  */
 class Solution487 {
 public:
-    int findMaxConsecutiveOnes(vector<int>& nums) {
-        int ans = 0;
-        int zeros = 0;
+    int longestOnes(vector<int>& nums) {
+        int left = 0;
+        int right = 0;
+        int zeroCount = 0;
+        int maxLength = 0;
 
-        for (int l = 0, r = 0; r < nums.size(); ++r) {
-            if (nums[r] == 0)
-                ++zeros;
-            while (zeros == 2)
-                if (nums[l++] == 0)
-                    --zeros;
-            ans = max(ans, r - l + 1);
+        while (right < nums.size()) {
+            if (nums[right] == 0) {
+                zeroCount++;
+            }
+
+            while (zeroCount > 1) {
+                if (nums[left] == 0) {
+                    zeroCount--;
+                }
+                left++;
+            }
+
+            maxLength = max(maxLength, right - left + 1);
+            right++;
         }
 
-        return ans;
+        return maxLength;
     }
 };
 
@@ -517,28 +470,27 @@ public:
 class Solution713 {
 public:
     int numSubarrayProductLessThanK(vector<int>& nums, int k) {
-        if (k <= 1) return 0;
-        int len = nums.size();
+        if (k <= 1)
+            return 0;
         int left = 0;
         int right = 0;
         long long product = 1;
         int ans = 0;
-        while (right < len) {
-            product *= nums[right];
-            right++;
+        while (right < nums.size()) {
+            product *= nums[right++];
             while(product>=k) {
                 product /= nums[left];
                 left++;
             }
             ans += right - left;
         }
+
         return ans;
     }
 };
 
 //727. Minimum window subsequence
 /*
- * Question :
 Given strings S and T, find the minimum (contiguous) substring W of S, so that T is a subsequence of W.
 If there is no such window in S that covers all characters in T, return the empty string "". If there are multiple such minimum-length windows, return the one with the left-most starting index.
 
@@ -552,15 +504,19 @@ There are many substrings with "bde" but the smallest amongst them is "bcde" and
 class Solution727 {
 public:
     string minWindow(string S, string T) {
-        int m = S.size(), n = T.size(), start = -1, minLen = INT_MAX, i = 0, j = 0;
-        while (i < m) {
+        int  start = -1;
+        int minLen = INT_MAX;
+        int i = 0;
+        int j = 0;
+        while (i < S.size()) {
             if (S[i] == T[j]) {
-                if (++j == n) {
+                if (++j == T.size()) {
                     int end = i + 1;
                     while (--j >= 0) {
                         while (S[i--] != T[j]);
                     }
-                    ++i; ++j;
+                    ++i;
+                    ++j;
                     if (end - i < minLen) {
                         minLen = end - i;
                         start = i;
@@ -577,10 +533,10 @@ public:
 class Solution978 {
 public:
     int maxTurbulenceSize(vector<int>& arr) {
-        int n = arr.size();
         int ret = 1;
-        int left = 0, right = 0;
-        while (right < n - 1) {
+        int left = 0;
+        int right = 0;
+        while (right < arr.size() - 1) {
             if (left == right) {
                 if (arr[left] == arr[left + 1]) {
                     left++;
@@ -604,35 +560,38 @@ public:
 //992. Subarrays with K Different Integers
 class Solution992 {
 public:
-    int subarraysWithKDistinct(vector<int>& nums, int k) {
-        return atMostKDistinct(nums, k) - atMostKDistinct(nums, k-1);
-    }
-
-    int atMostKDistinct(vector<int>& nums, int k) {
-        int len = nums.size();
+    int countGoodSubarrays(vector<int>& nums, int k) {
+        unordered_map<int, int> freq;
         int left = 0;
         int right = 0;
-        int count = 0;
-        unordered_map<int, int> nmap;
-        int ans  = 0;
-        while (right < len) {
-            if (nmap.count(nums[right])==0) {
-                count++;
-            }
-            nmap[nums[right]]++;
-            right++;
+        int uniqueCount = 0;
+        int goodSubarrays = 0;
 
-            while (count>k) {
-                nmap[nums[left]]--;
-                if (nmap[nums[left]]==0) {
-                    count--;
-                    nmap.erase(nums[left]);
+        while (right < nums.size()) {
+            // Expand the window
+            if (freq[nums[right]] == 0) {
+                uniqueCount++;
+            }
+            freq[nums[right]]++;
+
+            // Shrink the window until we have exactly k unique elements
+            while (uniqueCount > k) {
+                freq[nums[left]]--;
+                if (freq[nums[left]] == 0) {
+                    uniqueCount--;
                 }
                 left++;
             }
-            ans += right - left;
+
+            // Count the subarrays
+            if (uniqueCount == k) {
+                goodSubarrays += (right - left + 1);
+            }
+
+            right++;
         }
-        return ans;
+
+        return goodSubarrays;
     }
 };
 
@@ -641,11 +600,11 @@ class Solution995 {
 public:
     int minKBitFlips(vector<int>& nums, int k) {
         int n = nums.size();
-        int ans = 0, revCnt = 0;
+        int ans = 0;
+        int revCnt = 0;
         for (int i = 0; i < n; ++i) {
             if (i >= k && nums[i - k] > 1) {
                 revCnt ^= 1;
-                //nums[i - k] -= 2; // 复原数组元素，若允许修改数组 nums，则可以省略
             }
             if (nums[i] == revCnt) {
                 if (i + k > n) {
@@ -673,7 +632,6 @@ public:
                 cnt++;
             }
             if (cnt>K) {
-                maxlen = max(right-left, maxlen);
                 if (A[left]==0)
                     cnt--;
                 left++;
@@ -710,7 +668,7 @@ public:
     }
 };
 
-//1100.Find-K-Length-Substrings-With-No-Repeated-Characters
+//1100.Find K Length Substrings With No Repeated Characters
 /*Given a string S, return the number of substrings of length K with no repeated characters.
 
 Example 1:
@@ -732,18 +690,21 @@ All characters of S are lowercase English letters.
  */
 class Solution1100 {
 public:
-    int numKLenSubstrNoRepeats(std::string S, int K) {
-        std::unordered_set<char> cur;
-        int res = 0, i = 0;
-        for (int j = 0; j < S.length(); j++) {
-            while (cur.count(S[j])) {
-                cur.erase(S[i++]);
+    int numKLenSubstrNoRepeats(string S, int K) {
+        unordered_set<char> cur;
+        int res = 0;
+        int left = 0;
+        int right = 0;
+        while (right < S.length()) {
+            while (cur.count(S[right])) {
+                cur.erase(S[left++]);
             }
-            cur.insert(S[j]);
-            if (j - i + 1 >= K) {
+            cur.insert(S[right++]);
+            if (right - left >= K) {
                 res += 1;
             }
         }
+
         return res;
     }
 };
@@ -780,9 +741,9 @@ Note:
 class Solution1151 {
 public:
     int minSwaps(vector<int>& data) {
-        const int k = ranges::count(data, 1);
-        int ones = 0;     // the number of ones in the window
-        int maxOnes = 0;  // the maximum number of ones in the window
+        const int k = count(data.begin(), data.end(), 1);
+        int ones = 0;
+        int maxOnes = 0;
 
         for (int i = 0; i < data.size(); ++i) {
             if (i >= k && data[i - k])
@@ -855,13 +816,13 @@ public:
         int left = 0;
         int right = 0;
         int maxlen  = 0;
-        while (right<s.length()) {
-            cost += abs(s[right]-t[right]);
-            while (cost>maxCost) {
+        while (right < s.length()) {
+            cost += abs(s[right] - t[right]);
+            while (cost > maxCost) {
                 cost -= abs(s[left]- t[left]);
                 left++;
             }
-            maxlen = max(maxlen, right+1-left);
+            maxlen = max(maxlen, right + 1 - left);
             right++;
         }
         return maxlen;
@@ -872,23 +833,38 @@ public:
 class Solution1248 {
 public:
     int numberOfSubarrays(vector<int>& nums, int k) {
-        unordered_map<int, int> map;
-        int cnt=0;
-        int oddcnt=0;
-
-        for (int i=0; i<nums.size(); i++) {
-            if (nums[i] &1 ==1) {
-                oddcnt++;
+        int left = 0;
+        int right = 0;
+        int oddCount = 0;
+        int n = nums.size();
+        int result = 0;
+        while (right < n) {
+            if (nums[right] % 2 == 1) {
+                oddCount++;
             }
-            map[oddcnt]++;
-            if (oddcnt == k) {
-                cnt++;
+            while (oddCount > k) {
+                if (nums[left] % 2 == 1) {
+                    oddCount--;
+                }
+                left++;
             }
-            if (map.count(oddcnt-k)) {
-                cnt += map[oddcnt-k];
+            if (oddCount == k) {
+                int leftEvenCount = 1;
+                while (left < right && nums[left] % 2 == 0) {
+                    leftEvenCount++;
+                    left++;
+                }
+                int rightEvenCount = 1;
+                while (right + 1 < n && nums[right + 1] % 2 == 0) {
+                    rightEvenCount++;
+                    right++;
+                }
+                result += leftEvenCount * rightEvenCount;
             }
+            right++;
         }
-        return cnt;
+
+        return result;
     }
 };
 
@@ -897,16 +873,21 @@ class Solution1358 {
     int cnt[3];
 public:
     int numberOfSubstrings(string s) {
-        int len=(int)s.length(),ans=0;
-        cnt[0]=cnt[1]=cnt[2]=0;
-        for (int l=0,r=-1;l<len;){
-            while (r<len && !(cnt[0]>=1 && cnt[1]>=1 && cnt[2]>=1)){
-                if (++r==len) break;
-                cnt[s[r]-'a']++;
+        int n = s.length();
+        unordered_map<char, int> freq;
+        int ans = 0;
+        int left = 0;
+        int right = 0;
+        while (right < n) {
+            freq[s[right]]++;
+            while (freq['a'] && freq['b'] && freq['c']) {
+                ans += n - right;
+                freq[s[left]]--;
+                left++;
             }
-            ans+=len-r;
-            cnt[s[l++]-'a']--;
+            right++;
         }
+
         return ans;
     }
 };
@@ -954,45 +935,56 @@ public:
 class Solution1695 {
 public:
     int maximumUniqueSubarray(vector<int>& nums) {
+        unordered_map<int, int> freq;
+        int score = 0;
+        int maxScore = 0;
         int left = 0;
-        int right=0;
-        int sum = 0;
-        int max_sum = sum;
-        unordered_map<int, int> map;
-        while (right<nums.size()) {
-            if (map.count(nums[right])) {
-                max_sum = max(max_sum, sum);
-                int index = max(left, map[nums[right]]+1);
-                while (left != index) {
-                    sum -= nums[left++];
-                }
+        int right = 0;
+        while (right < nums.size()) {
+            freq[nums[right]]++;
+            score += nums[right];
+
+            while (freq[nums[right]] > 1) {
+                freq[nums[left]]--;
+                score -= nums[left];
+                left++;
             }
-            sum += nums[right];
-            map[nums[right]] = right;
+            maxScore = max(maxScore, score);
             right++;
         }
-        return max(max_sum, sum);
+
+        return maxScore;
     }
 };
 
 //1871. Jump Game VII
-// unsolved
 class Solution1871 {
 public:
     bool canReach(string s, int minJump, int maxJump) {
         int n = s.length();
-        if (s[n - 1] == '1') return false; // If the last character is '1', it's unreachable
+        if (s[n - 1] == '1')
+            return false;
 
-        int left = 0, right = 0;
+        deque<int> reachableIndexes;
+        reachableIndexes.push_back(0);
+        int right = 1;
+        while (right < n) {
+            if (s[right] == '0') {
+                // Remove indices from the front of the deque if they are out of the valid range
+                while (!reachableIndexes.empty() && reachableIndexes.front() < right - maxJump)
+                    reachableIndexes.pop_front();
 
-        for (int i = 0; i < n; ++i) {
-            if (s[i] == '0') {
-                right = i;
-                if (right - left + 1 >= minJump) {
-                    if (right == n - 1) return true; // Reached the end
-                    left = right - maxJump + 1; // Shrink the window from the left side
+                // Check if there's a reachable index within the valid range
+                for (auto& left : reachableIndexes) {
+                    if (left + minJump <= right && left + maxJump >= right) {
+                        if (right == n - 1)
+                            return true;
+                        reachableIndexes.push_back(right);
+                        break; // Break to avoid pushing the same index multiple times
+                    }
                 }
             }
+            right++;
         }
 
         return false;
