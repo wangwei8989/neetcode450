@@ -991,6 +991,83 @@ public:
     }
 };
 
+//658. Find K Closest Elements
+class Solution658 {
+public:
+    vector<int> findClosestElements(vector<int>& arr, int k, int x) {
+        int left = 0;
+        int  right = arr.size() - 1;
+
+        while (left < right) {
+            int mid = left + (right - left) / 2;
+            if (arr[mid] < x) {
+                left = mid + 1;
+            } else {
+                right = mid;
+            }
+        }
+
+        int low = max(0, left - k);
+        int high = min((int)arr.size() - 1, left + k);
+
+        while (high - low + 1 > k) {
+            if (abs(arr[low] - x) <= abs(arr[high] - x)) {
+                high--;
+            } else {
+                low++;
+            }
+        }
+
+        vector<int> result(arr.begin() + low, arr.begin() + high + 1);
+        return result;
+    }
+};
+
+//1888. Minimum Number of Flips to Make the Binary String Alternating
+class Solution1888 {
+public:
+    int minFlips(string s) {
+        int n = s.length();
+        s = s + s;
+        string alt1;
+        string alt2;
+        for (int i = 0; i < 2*n; i++) {
+            alt1 += (i % 2 == 0 ? '0' : '1');
+            alt2 += (i % 2 == 0 ? '1' : '0');
+        }
+
+        int result = n;
+        int diffCount1 = 0;
+        int diffCount2 = 0;
+        int left = 0;
+        for (int right = 0; right < 2*n; right++) {
+            if (s[right] != alt1[right]) {
+                diffCount1++;
+            }
+            if (s[right] != alt2[right]) {
+                diffCount2++;
+            }
+
+            if ((right - left + 1) > n) {
+                if (s[left] != alt1[left]) {
+                    diffCount1--;
+                }
+                if (s[left] != alt2[left]) {
+                    diffCount2--;
+                }
+                left++;
+            }
+
+            if ((right - left + 1) == n) {
+                result = min(result, min(diffCount1, diffCount2));
+            }
+        }
+
+        return result;
+    }
+};
+
+
 //1984. Minimum Difference Between Highest and Lowest of K Scores
 // solution in twopoints.h
 
