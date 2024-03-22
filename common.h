@@ -18,7 +18,6 @@
 #include <numeric>
 #include <utility>
 #include <algorithm>
-#include <ranges>
 
 using namespace std;
 

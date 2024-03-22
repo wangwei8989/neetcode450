@@ -5,6 +5,8 @@
 #include "TwoPoints.h"
 #include "stack.h"
 #include "math&geometry.h"
+#include "bitManipulation.h"
+#include "slidingWindow.h"
 #include "common.h"
 
 

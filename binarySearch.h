@@ -436,7 +436,7 @@ public:
 //108. Convert Sorted Array to Binary Search Tree
 class Solution108 {
 public:
-    TreeNode* sortedArrayToBST(const std::vector<int>& nums) {
+    TreeNode* sortedArrayToBST(const vector<int>& nums) {
         if (nums.empty()) {
             return nullptr;
         }
@@ -445,7 +445,7 @@ public:
     }
 
 private:
-    TreeNode* Helper(const std::vector<int>& nums, int left, int right) {
+    TreeNode* Helper(const vector<int>& nums, int left, int right) {
         if (left > right) {
             return nullptr;
         }
