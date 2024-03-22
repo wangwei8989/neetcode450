@@ -1,9 +1,9 @@
 //
-// Created by Wei on 2/11/24.
+// Created by Wei on 12/11/23.
 //
 
-#ifndef NEETCODE150_DP_H
-#define NEETCODE150_DP_H
+#ifndef NEETCODE150_DYNAMIC_PRIOGRAMMING_H
+#define NEETCODE150_DYNAMIC_PRIOGRAMMING_H
 
 #include "common.h"
 
@@ -115,4 +115,5 @@ public:
 
 //5. Longest Palindromic Substring
 
-#endif //NEETCODE150_DP_H
+
+#endif //NEETCODE150_DYNAMIC_PRIOGRAMMING_H

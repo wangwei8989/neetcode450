@@ -39,18 +39,18 @@ private:
 //39. Combination Sum
 class Solution39 {
 public:
-    vector<vector<int>> combinationSum(vector<int>& candidates, int target) {
+    std::vector<std::vector<int>> combinationSum(std::vector<int>& candidates, int target) {
         //sort the candidates array before backtrack can be more efficient.
-        sort(candidates.begin(), candidates.end());
-        vector<vector<int>> result;
-        vector<int> subSet;
+        std::sort(candidates.begin(), candidates.end());
+        std::vector<std::vector<int>> result;
+        std::vector<int> subSet;
         backtrack(candidates, target, 0, result, subSet);
         return result;
     }
 
 private:
-    void backtrack(const vector<int>& candidates, int target, int start,
-                   vector<vector<int>>& result, vector<int>& subSet) {
+    void backtrack(const std::vector<int>& candidates, int target, int start,
+                   std::vector<std::vector<int>>& result, std::vector<int>& subSet) {
         if (target == 0) {
             result.push_back(subSet);
             return;
@@ -246,16 +246,16 @@ private:
 class Solution40 {
 public:
     vector<vector<int>> combinationSum2(vector<int>& candidates, int target) {
-        sort(candidates.begin(), candidates.end());
-        vector<vector<int>> result;
-        vector<int> subSet;
+        std::sort(candidates.begin(), candidates.end());
+        std::vector<std::vector<int>> result;
+        std::vector<int> subSet;
         backtrack(candidates, target, 0, result, subSet);
         return result;
     }
 
 private:
-    void backtrack(const vector<int>& candidates, int target, int start,
-                   vector<vector<int>>& result, vector<int>& subSet) {
+    void backtrack(const std::vector<int>& candidates, int target, int start,
+                   std::vector<std::vector<int>>& result, std::vector<int>& subSet) {
         if (target == 0) {
             result.push_back(subSet);
             return;

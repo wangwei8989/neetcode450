@@ -491,7 +491,7 @@ public:
 };
 
 //108. Convert Sorted Array to Binary Search Tree
-class Solution108_recursion {
+class Solution108 {
 public:
     TreeNode* sortedArrayToBST(const vector<int>& nums) {
         if (nums.empty()) {

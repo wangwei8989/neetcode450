@@ -198,6 +198,30 @@ public:
     }
 };
 
+//143. Reorder List
+class Solution {
+public:
+    void reorderList(ListNode* head) {
+        vector<ListNode*> vec;
+        ListNode* itor = head;
+        while (itor != nullptr) {
+            vec.push_back(itor);
+            itor = itor->next;
+        }
+        int left = 0;
+        int right = vec.size() - 1;
+        while (left < right) {
+            vec[left]->next = vec[right];
+            left++;
+            if (left == right)
+                break;
+            vec[right]->next = vec[left];
+            right--;
+        }
+        vec[left]->next = nullptr;
+    }
+};
+
 //19. Remove Nth Node From End of List
 class Solution19 {
 public:
@@ -355,52 +379,37 @@ public:
     }
 };
 
-//142. Linked List Cycle II
-class Solution142 {
+//287. Find the Duplicate Number
+class Solution287 {
 public:
-    ListNode *detectCycle(ListNode *head) {
-        if ( head== nullptr || head->next== nullptr) {
-            return nullptr;
+    int findDuplicate(vector<int>& nums) {
+        int slow = nums[0];
+        int fast = nums[nums[0]];
+
+        while (slow != fast) {
+            slow = nums[slow];
+            fast = nums[nums[fast]];
         }
-        ListNode *fast = head;
-        ListNode *slow = head;
-        while(fast->next!= nullptr && fast->next->next!= nullptr) {
-            fast = fast->next->next;
-            slow = slow->next;
-            if (fast == slow) {
-                ListNode *ans = head;
-                while(fast != ans) {
-                    fast = fast->next;
-                    ans = ans->next;
-                }
-                return ans;
-            }
+
+        slow = 0;
+        while (slow != fast) {
+            slow = nums[slow];
+            fast = nums[fast];
         }
-        return nullptr;
+        return slow;
     }
 };
 
-//143. Reorder List
-class Solution {
+//24. Swap Nodes in Pairs
+class Solution24 {
 public:
-    void reorderList(ListNode* head) {
-        vector<ListNode*> vec;
-        ListNode* itor = head;
-        while (itor != nullptr) {
-            vec.push_back(itor);
-            itor = itor->next;
-        }
-        int left = 0;
-        int right = vec.size() - 1;
-        while (left < right) {
-            vec[left]->next = vec[right];
-            left++;
-            if (left == right)
-                break;
-            vec[right]->next = vec[left];
-            right--;
-        }
-        vec[left]->next = nullptr;
+    ListNode* swapPairs(ListNode* head) {
+        if (head == nullptr || head->next == nullptr)
+            return head;
+        auto next = head->next;
+        head->next = swapPairs(next->next);
+        next->next = head;
+        return next;
     }
 };
 
@@ -469,40 +478,6 @@ public:
         head = merge(leftHalf, rightHalf);
 
         return head;
-    }
-};
-
-//287. Find the Duplicate Number
-class Solution287 {
-public:
-    int findDuplicate(vector<int>& nums) {
-        int slow = nums[0];
-        int fast = nums[nums[0]];
-
-        while (slow != fast) {
-            slow = nums[slow];
-            fast = nums[nums[fast]];
-        }
-
-        slow = 0;
-        while (slow != fast) {
-            slow = nums[slow];
-            fast = nums[fast];
-        }
-        return slow;
-    }
-};
-
-//24. Swap Nodes in Pairs
-class Solution24 {
-public:
-    ListNode* swapPairs(ListNode* head) {
-        if (head == nullptr || head->next == nullptr)
-            return head;
-        auto next = head->next;
-        head->next = swapPairs(next->next);
-        next->next = head;
-        return next;
     }
 };
 

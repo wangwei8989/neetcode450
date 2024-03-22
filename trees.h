@@ -107,7 +107,7 @@ public:
 };
 
 //235. Lowest Common Ancestor of a Binary Search Tree
-class Solution235_trees {
+class Solution235 {
 public:
     TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
         if (p->val < root->val && q->val < root->val)
