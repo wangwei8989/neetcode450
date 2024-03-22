@@ -238,8 +238,8 @@ public:
 //735. Asteroid Collision
 class Solution735 {
 public:
-    std::vector<int> asteroidCollision(std::vector<int>& asteroids) {
-        std::stack<int> stk;
+    vector<int> asteroidCollision(vector<int>& asteroids) {
+        stack<int> stk;
         for (int asteroid : asteroids) {
             if (stk.empty() || asteroid > 0) {
                 stk.push(asteroid);
@@ -255,7 +255,7 @@ public:
             }
         }
 
-        std::vector<int> result;
+        vector<int> result;
         for (int i = stk.size() - 1; i >= 0; --i) {
             result.push_back(stk.top());
             stk.pop();
@@ -286,7 +286,7 @@ public:
 //901. Online Stock Span
 class StockSpanner {
 private:
-    std::stack<std::pair<int, int>> stk;
+    stack<pair<int, int>> stk;
 
 public:
     StockSpanner() {
@@ -335,9 +335,9 @@ public:
 //71. Simplify Path
 class Solution71 {
 public:
-    std::string simplifyPath(std::string path) {
-        std::stack<std::string> directories;
-        std::string directory;
+    string simplifyPath(string path) {
+        stack<string> directories;
+        string directory;
 
         // Split the input path by '/'
         for (char& c : path) {
@@ -367,7 +367,7 @@ public:
         }
 
         // Construct the canonical path
-        std::string canonicalPath;
+        string canonicalPath;
         while (!directories.empty()) {
             canonicalPath = '/' + directories.top() + canonicalPath;
             directories.pop();
@@ -415,8 +415,8 @@ public:
 //402. Remove K Digits
 class Solution402 {
 public:
-    std::string removeKdigits(std::string num, int k) {
-        std::stack<char> stk;
+    string removeKdigits(string num, int k) {
+        stack<char> stk;
 
         for (char digit : num) {
             while (!stk.empty() && k > 0 && stk.top() > digit) {
@@ -431,7 +431,7 @@ public:
             k--;
         }
 
-        std::string result;
+        string result;
         while (!stk.empty()) {
             result += stk.top();
             stk.pop();
@@ -439,7 +439,7 @@ public:
         reverse(result.begin(), result.end());
 
         size_t nonZeroPos = result.find_first_not_of('0');
-        result = (nonZeroPos == std::string::npos) ? "0" : result.substr(nonZeroPos);
+        result = (nonZeroPos == string::npos) ? "0" : result.substr(nonZeroPos);
 
         return result.empty() ? "0" : result;
     }
@@ -448,8 +448,8 @@ public:
 //1209. Remove All Adjacent Duplicates in String II
 class Solution1209 {
 public:
-    std::string removeDuplicates(std::string s, int k) {
-        std::stack<std::pair<char, int>> stk;
+    string removeDuplicates(string s, int k) {
+        stack<pair<char, int>> stk;
 
         for (char c : s) {
             if (!stk.empty() && stk.top().first == c) {
@@ -462,7 +462,7 @@ public:
             }
         }
 
-        std::string result;
+        string result;
         while (!stk.empty()) {
             auto [c, count] = stk.top();
             stk.pop();
@@ -478,9 +478,9 @@ public:
 //456. 132 Pattern
 class Solution456 {
 public:
-    bool find132pattern(std::vector<int>& nums) {
+    bool find132pattern(vector<int>& nums) {
         int n = nums.size();
-        std::stack<int> stk;
+        stack<int> stk;
         int max_val = INT_MIN;
 
         for (int i = n - 1; i >= 0; --i) {
