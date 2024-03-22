@@ -233,7 +233,6 @@ public:
         neighbors = _neighbors;
     }
 };
-
 class Solution133 {
 public:
     class Solution {
@@ -293,7 +292,7 @@ public:
 };
 
 //199. Binary Tree Right Side View
-class Solution199 {
+class Solution {
 public:
     void dfs(TreeNode* node, vector<int>& result) {
         if (node == nullptr)
@@ -391,7 +390,7 @@ public:
 };
 
 //1008. Construct Binary Search Tree from Preorder Traversal
-class Solution1008_dfs {
+class Solution1008 {
 public:
     TreeNode* bstFromPreorder(vector<int>& preorder) {
         return dfs(preorder, 0, preorder.size() - 1);
@@ -461,7 +460,6 @@ public:
         return nodes.top();
     }
 };
-
 
 
 #endif //NEETCODE150_DFS_H

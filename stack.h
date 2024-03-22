@@ -30,47 +30,6 @@ public:
     }
 };
 
-//682. Baseball Game
-class Solution682 {
-public:
-    int calPoints(vector<string>& ops) {
-        stack<int> stack;
-        int sum =  0;
-
-        for (int i = 0; i < ops.size(); i++){
-            if (ops[i] == "+"){
-                int first = stack.top();
-                stack.pop();
-
-                int second = stack.top();
-
-                stack.push(first);
-
-                stack.push(first + second);
-
-                sum += first + second;
-            }
-
-            else if (ops[i] == "D"){
-                sum += 2 * stack.top();
-                stack.push(2 * stack.top());
-            }
-
-            else if (ops[i] == "C"){
-                sum -= stack.top();
-                stack.pop();
-            }
-
-            else{
-                sum += stoi(ops[i]);
-                stack.push(stoi(ops[i]));
-            }
-        }
-
-        return sum;
-    }
-};
-
 //225. Implement Stack using Queues
 class MyStack {
     queue<int> q1;
@@ -159,53 +118,6 @@ public:
     }
 };
 
-//2390. Removing Stars From a String
-class Solution2390 {
-public:
-    string removeStars(string s) {
-        stack<char> stack;
-        for (char ch : s) {
-            if (ch == '*' && !stack.empty()) {
-                stack.pop();
-            } else {
-                stack.push(ch);
-            }
-        }
-
-        string result;
-        while (!stack.empty()) {
-            result += stack.top();
-            stack.pop();
-        }
-
-        reverse(result.begin(), result.end());
-        return result;
-    }
-};
-
-//946. Validate Stack Sequences
-class Solution946 {
-public:
-    bool validateStackSequences(vector<int>& pushed, vector<int>& popped) {
-        stack<int> stack;
-        int j = 0;
-        for (int num : pushed) {
-            stack.push(num);
-            while (!stack.empty() && stack.top() == popped[j]) {
-                stack.pop();
-                j++;
-            }
-        }
-        for (; j < popped.size(); ++j) {
-            if (stack.empty() || stack.top() != popped[j]) {
-                return false;
-            }
-            stack.pop();
-        }
-        return true;
-    }
-};
-
 //22. Generate Parentheses
 class Solution22 {
 public:
@@ -235,36 +147,6 @@ public:
 
 };
 
-//735. Asteroid Collision
-class Solution735 {
-public:
-    std::vector<int> asteroidCollision(std::vector<int>& asteroids) {
-        std::stack<int> stk;
-        for (int asteroid : asteroids) {
-            if (stk.empty() || asteroid > 0) {
-                stk.push(asteroid);
-            } else {
-                while (!stk.empty() && stk.top() > 0 && stk.top() < -asteroid) {
-                    stk.pop();
-                }
-                if (stk.empty() || stk.top() < 0) {
-                    stk.push(asteroid);
-                } else if (stk.top() == -asteroid) {
-                    stk.pop(); // Both asteroids explode
-                }
-            }
-        }
-
-        std::vector<int> result;
-        for (int i = stk.size() - 1; i >= 0; --i) {
-            result.push_back(stk.top());
-            stk.pop();
-        }
-        reverse(result.begin(), result.end());
-        return result;
-    }
-};
-
 //739. Daily Temperatures
 class Solution739 {
 public:
@@ -280,27 +162,6 @@ public:
             stk.push(i);
         }
         return ans;
-    }
-};
-
-//901. Online Stock Span
-class StockSpanner {
-private:
-    std::stack<std::pair<int, int>> stk;
-
-public:
-    StockSpanner() {
-
-    }
-
-    int next(int price) {
-        int span = 1;
-        while (!stk.empty() && stk.top().first <= price) {
-            span += stk.top().second;
-            stk.pop();
-        }
-        stk.push({price, span});
-        return span;
     }
 };
 
@@ -329,51 +190,6 @@ public:
         }
 
         return result;
-    }
-};
-
-//71. Simplify Path
-class Solution71 {
-public:
-    std::string simplifyPath(std::string path) {
-        std::stack<std::string> directories;
-        std::string directory;
-
-        // Split the input path by '/'
-        for (char& c : path) {
-            if (c == '/') {
-                if (directory == "..") {
-                    if (!directories.empty()) {
-                        directories.pop(); // Go up a level
-                    }
-                } else if (!directory.empty() && directory != ".") {
-                    directories.push(directory);
-                }
-                directory.clear();
-            } else {
-                directory += c;
-            }
-        }
-
-        // Handle the last directory
-        if (!directory.empty()) {
-            if (directory == "..") {
-                if (!directories.empty()) {
-                    directories.pop(); // Go up a level
-                }
-            } else if (directory != ".") {
-                directories.push(directory);
-            }
-        }
-
-        // Construct the canonical path
-        std::string canonicalPath;
-        while (!directories.empty()) {
-            canonicalPath = '/' + directories.top() + canonicalPath;
-            directories.pop();
-        }
-
-        return canonicalPath.empty() ? "/" : canonicalPath;
     }
 };
 
@@ -410,121 +226,6 @@ public:
         }
         return ans;
     }
-};
-
-//402. Remove K Digits
-class Solution402 {
-public:
-    std::string removeKdigits(std::string num, int k) {
-        std::stack<char> stk;
-
-        for (char digit : num) {
-            while (!stk.empty() && k > 0 && stk.top() > digit) {
-                stk.pop();
-                k--;
-            }
-            stk.push(digit);
-        }
-
-        while (k > 0 && !stk.empty()) {
-            stk.pop();
-            k--;
-        }
-
-        std::string result;
-        while (!stk.empty()) {
-            result += stk.top();
-            stk.pop();
-        }
-        reverse(result.begin(), result.end());
-
-        size_t nonZeroPos = result.find_first_not_of('0');
-        result = (nonZeroPos == std::string::npos) ? "0" : result.substr(nonZeroPos);
-
-        return result.empty() ? "0" : result;
-    }
-};
-
-//1209. Remove All Adjacent Duplicates in String II
-class Solution1209 {
-public:
-    std::string removeDuplicates(std::string s, int k) {
-        std::stack<std::pair<char, int>> stk;
-
-        for (char c : s) {
-            if (!stk.empty() && stk.top().first == c) {
-                stk.top().second++;
-                if (stk.top().second == k) {
-                    stk.pop();
-                }
-            } else {
-                stk.push({c, 1});
-            }
-        }
-
-        std::string result;
-        while (!stk.empty()) {
-            auto [c, count] = stk.top();
-            stk.pop();
-            while (count--)
-                result.push_back(c);
-        }
-        reverse(result.begin(), result.end());
-
-        return result;
-    }
-};
-
-//456. 132 Pattern
-class Solution456 {
-public:
-    bool find132pattern(std::vector<int>& nums) {
-        int n = nums.size();
-        std::stack<int> stk;
-        int max_val = INT_MIN;
-
-        for (int i = n - 1; i >= 0; --i) {
-            if (nums[i] < max_val) {
-                return true;
-            }
-            while (!stk.empty() && nums[i] > stk.top()) {
-                max_val = stk.top();
-                stk.pop();
-            }
-            stk.push(nums[i]);
-        }
-
-        return false;
-    }
-};
-
-//895. Maximum Frequency Stack
-class FreqStack {
-public:
-    FreqStack() {
-        maxFreq = 0;
-    }
-
-    void push(int val) {
-        freq[val]++;
-        group[freq[val]].push(val);
-        maxFreq = max(maxFreq, freq[val]);
-    }
-
-    int pop() {
-        int val = group[maxFreq].top();
-        freq[val]--;
-        group[maxFreq].pop();
-        if (group[maxFreq].empty()) {
-            maxFreq--;
-        }
-        return val;
-    }
-
-private:
-    unordered_map<int, int> freq;
-    unordered_map<int, stack<int>> group;
-    int maxFreq;
 };
 
 //84. Largest Rectangle in Histogram
@@ -583,6 +284,42 @@ public:
             }
         }
         return maxans;
+    }
+};
+
+//225. Implement Stack using Queues
+class MyStack {
+    queue<int> q1;
+    queue<int> q2;
+public:
+    /** Initialize your data structure here. */
+    MyStack() = default;
+
+    /** Push element x onto stack. */
+    void push(int x) {
+        q2.push(x);
+        while (!q1.empty()) {
+            q2.push(q1.front());
+            q1.pop();
+        }
+        swap(q1, q2);
+    }
+
+    /** Removes the element on top of the stack and returns that element. */
+    int pop() {
+        int x = q1.front();
+        q1.pop();
+        return x;
+    }
+
+    /** Get the top element. */
+    int top() {
+        return q1.front();
+    }
+
+    /** Returns whether the stack is empty. */
+    bool empty() {
+        return q1.empty();
     }
 };
 
@@ -724,5 +461,4 @@ public:
         return newnode;
     }
 };
-
 #endif //NEETCODE150_STACK_H

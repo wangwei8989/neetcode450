@@ -45,7 +45,7 @@ public:
 //978. Longest Turbulent Subarray
 class Solution978_greedy {
 public:
-    int maxTurbulenceSize(const vector<int>& arr) {
+    int maxTurbulenceSize(const std::vector<int>& arr) {
         int n = arr.size();
 
         if (n <= 1)
@@ -66,7 +66,7 @@ public:
                 curLength = 2;
             }
 
-            maxLength = max(maxLength, curLength);
+            maxLength = std::max(maxLength, curLength);
             prevCmp = cmp;
         }
 
@@ -114,7 +114,7 @@ public:
         int farthest = 0;
 
         for (int i = 0; i < n - 1; ++i) {
-            farthest = max(farthest, i + nums[i]);
+            farthest = std::max(farthest, i + nums[i]);
 
             if (i == currentEnd) {
                 ++jumps;
@@ -218,8 +218,26 @@ public:
 };
 
 //763. Partition Labels
-//Solution with greedy approch is uncompleted.
-
+class Solution763 {
+public:
+    vector<int> partitionLabels(string s) {
+        unordered_map<char, int> m;
+        vector<int> ans;
+        int left = 0;
+        int right = 0;
+        for (int i=0; i<s.length(); i++) {
+            if (m.count(s[i])==0) {
+                m[s[i]] = s.find_last_of(s[i]);
+            }
+            right = max(right, m[s[i]]);
+            if (i==right) {
+                ans.push_back(right - left + 1);
+                left = right + 1;
+            }
+        }
+        return ans;
+    }
+};
 
 //678. Valid Parenthesis String
 class Solution678 {
@@ -381,7 +399,7 @@ Constraints:
 Both the source and target strings consist of only lowercase English letters from "a"-"z".
 The lengths of source and target string are between 1 and 1000.
  */
-class Solution1055_greedy {
+class Solution1055 {
 public:
     int shortestWay(string source, string target) {
         int ans = 0;
