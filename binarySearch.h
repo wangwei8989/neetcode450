@@ -72,6 +72,82 @@ public:
     }
 };
 
+//441. Arranging Coins
+class Solution441 {
+public:
+    int arrangeCoins(int n) {
+        long left = 0;
+        long right = n;
+
+        while (left <= right) {
+            long long k = left + (right - left) / 2;
+            long long total_coins = k * (k + 1) / 2;
+
+            if (total_coins == n) {
+                return k;
+            } else if (total_coins < n) {
+                left = k + 1;
+            } else {
+                right = k - 1;
+            }
+        }
+
+        return right;  // Return the number of complete rows
+    }
+};
+
+//977. Squares of a Sorted Array
+class Solution977 {
+public:
+    vector<int> sortedSquares(vector<int>& nums) {
+        int n = nums.size();
+        vector<int> result(n);
+
+        int left = 0;
+        int right = n - 1;
+        int idx = n - 1;
+
+        while (left <= right) {
+            int leftSquare = nums[left] * nums[left];
+            int rightSquare = nums[right] * nums[right];
+
+            if (leftSquare > rightSquare) {
+                result[idx--] = leftSquare;
+                left++;
+            } else {
+                result[idx--] = rightSquare;
+                right--;
+            }
+        }
+
+        return result;
+    }
+};
+
+//367. Valid Perfect Square
+class Solution367 {
+public:
+    bool isPerfectSquare(int num) {
+        long long left = 1;
+        long long right = num;
+
+        while (left <= right) {
+            long long mid = left + (right - left) / 2;
+            long long square = mid * mid;
+
+            if (square == num) {
+                return true;
+            } else if (square < num) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+
+        return false;
+    }
+};
+
 //69. Sqrt(x)
 class Solution69 {
 public:
@@ -94,27 +170,91 @@ public:
     }
 };
 
-//162. Find Peak Element
-class Solution162 {
+//540. Single Element in a Sorted Array
+class Solution540 {
 public:
-    int findPeakElement(vector<int>& nums) {
-        if (nums.size()==1)
-            return 0;
+    int singleNonDuplicate(vector<int>& nums) {
         int left = 0;
-        int right = nums.size();
+        int right = nums.size() - 1;
 
         while (left < right) {
-            int mid = left + ((right-left)/2);
-            if (((mid+1<right && nums[mid]>nums[mid+1]) || mid+1>=right) &&
-                ((mid-1>=left && nums[mid]>nums[mid-1]) || mid-1<left)) {
-                return mid;
-            } else if (nums[mid] >= nums[mid-1]) {
-                left = mid+1;
+            int mid = left + (right - left) / 2;
+            if (mid % 2 == 1) mid--; // Ensure mid is even
+
+            if (nums[mid] == nums[mid + 1]) {
+                left = mid + 2;
             } else {
                 right = mid;
             }
         }
-        return -1;
+
+        return nums[left];
+    }
+};
+
+//1011. Capacity To Ship Packages Within D Days
+class Solution1011 {
+public:
+    int shipWithinDays(vector<int>& weights, int days) {
+        int left = *max_element(weights.begin(), weights.end()); // Minimum capacity
+        int right = accumulate(weights.begin(), weights.end(), 0); // Maximum capacity
+
+        while (left < right) {
+            int mid = left + (right - left) / 2;
+            int day = 1; // Number of days needed
+            int sum = 0; // Cumulative weight loaded on current day
+
+            for (int w : weights) {
+                if (sum + w > mid) {
+                    day++;
+                    sum = 0;
+                }
+                sum += w;
+            }
+
+            if (day <= days) {
+                right = mid;
+            } else {
+                left = mid + 1;
+            }
+        }
+
+        return left;
+    }
+};
+
+//162. Find Peak Element
+class Solution162 {
+public:
+    int findPeakElement(vector<int>& nums) {
+        int left = 0;
+        int right = nums.size() - 1;
+
+        while (left < right) {
+            int mid = left + (right - left) / 2;
+
+            if (nums[mid] > nums[mid + 1]) {
+                right = mid;
+            } else {
+                left = mid + 1;
+            }
+        }
+
+        return left;
+    }
+};
+
+//2300. Successful Pairs of Spells and Potions
+class Solution2300 {
+public:
+    vector<int> successfulPairs(vector<int>& spells, vector<int>& potions, long long success) {
+        sort(potions.begin(), potions.end());
+        vector<int> res;
+        for (auto& i : spells) {
+            long long t = (success + i - 1) / i - 1;
+            res.push_back(potions.size() - (upper_bound(potions.begin(), potions.end(), t) - potions.begin()));
+        }
+        return res;
     }
 };
 
@@ -247,6 +387,36 @@ public:
     }
 };
 
+//81. Search in Rotated Sorted Array II
+class Solution81 {
+public:
+    bool search(vector<int>& nums, int target) {
+        int left = 0;
+        int right = nums.size() - 1;
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            if (nums[mid] == target) {
+                return true;
+            } else if (nums[left] == nums[mid]) {
+                left++;
+            } else if (nums[left] < nums[mid]) {
+                if (nums[left] <= target && target < nums[mid]) {
+                    right = mid - 1;
+                } else {
+                    left = mid + 1;
+                }
+            } else {
+                if (nums[mid] < target && target <= nums[right]) {
+                    left = mid + 1;
+                } else {
+                    right = mid - 1;
+                }
+            }
+        }
+        return false;
+    }
+};
+
 //981. Time Based Key-Value Store
 class TimeMap {
 public:
@@ -360,6 +530,111 @@ public:
             return vector<int>{leftIdx, rightIdx};
         }
         return vector<int>{-1, -1};
+    }
+};
+
+//1898. Maximum Number of Removable Characters
+class Solution1898 {
+public:
+    bool isSubsequence(const string& s, const string& p, const vector<int>& removable, int k) {
+        string modifiedS = s;
+        for (int i = 0; i < k; ++i) {
+            modifiedS[removable[i]] = '*'; // Mark characters for removal
+        }
+        int j = 0;
+        for (char c : modifiedS) {
+            if (c == p[j]) {
+                ++j;
+                if (j == p.size()) return true; // p is a subsequence of modifiedS
+            }
+        }
+        return false;
+    }
+
+    int maximumRemovals(string s, string p, vector<int>& removable) {
+        int left = 0, right = removable.size();
+        while (left < right) {
+            int mid = left + (right - left + 1) / 2;
+            if (isSubsequence(s, p, removable, mid)) {
+                left = mid;
+            } else {
+                right = mid - 1;
+            }
+        }
+        return left;
+    }
+};
+
+//116. Populating Next Right Pointers in Each Node
+class Solution116 {
+public:
+    struct Node {
+        int val;
+        Node *left;
+        Node *right;
+        Node *next;
+    };
+
+    Node* connect(Node* root) {
+        if (root == nullptr) {
+            return root;
+        }
+
+        Node* leftmost = root;
+        while (leftmost->left != nullptr) {
+
+            Node* head = leftmost;
+            while (head != nullptr) {
+                head->left->next = head->right;
+                if (head->next != nullptr) {
+                    head->right->next = head->next->left;
+                }
+                head = head->next;
+            }
+            leftmost = leftmost->left;
+        }
+
+        return root;
+    }
+};
+
+//410. Split Array Largest Sum
+class Solution410 {
+public:
+    int splitArray(vector<int>& nums, int k) {
+        long left = 0, right = 0;
+        for (int num : nums) {
+            left = max(left, (long)num);
+            right += num;
+        }
+
+        while (left < right) {
+            long mid = left + (right - left) / 2;
+            if (isValid(nums, k, mid)) {
+                right = mid;
+            } else {
+                left = mid + 1;
+            }
+        }
+
+        return left;
+    }
+
+private:
+    bool isValid(const vector<int>& nums, int k, long target) {
+        int count = 1;
+        long sum = 0;
+        for (int num : nums) {
+            sum += num;
+            if (sum > target) {
+                sum = num;
+                count++;
+                if (count > k) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 };
 
@@ -593,6 +868,217 @@ private:
         root->left = dfs(preorder, start + 1, i - 1);
         root->right = dfs(preorder, i, end);
         return root;
+    }
+};
+
+//1027. Longest Arithmetic Subsequence
+class Solution1027 {
+public:
+    int longestArithSeqLength(vector<int>& nums) {
+        int n = nums.size();
+        if (n <= 2) return n;
+
+        // Create a 2D DP array
+        vector<unordered_map<int, int>> dp(n);
+
+        int maxLength = 2; // At least two elements are needed for an arithmetic subsequence
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < i; ++j) {
+                int diff = nums[i] - nums[j];
+                dp[i][diff] = dp[j].count(diff) ? dp[j][diff] + 1 : 2;
+                maxLength = max(maxLength, dp[i][diff]);
+            }
+        }
+        return maxLength;
+    }
+};
+
+//902. Numbers At Most N Given Digit Set
+class Solution902 {
+public:
+    int atMostNGivenDigitSet(vector<string>& digits, int n) {
+        string strN = to_string(n);
+        int N = strN.size();
+        int M = digits.size();
+
+        int ans = 0;
+
+        // Count the number of valid combinations for numbers with fewer digits than n
+        for (int i = 1; i < N; ++i) {
+            ans += pow(M, i);
+        }
+
+        // Count the number of valid combinations for numbers with the same number of digits as n
+        for (int i = 0; i < N; ++i) {
+            bool prefixExists = false;
+            for (string& digit : digits) {
+                if (digit[0] < strN[i]) {
+                    ans += pow(M, N - i - 1);
+                } else if (digit[0] == strN[i]) {
+                    prefixExists = true;
+                }
+            }
+            if (!prefixExists) return ans; // Early termination if no valid prefix exists
+        }
+
+        return ans + 1;
+    }
+};
+
+//887. Super Egg Drop
+class Solution887 {
+    unordered_map<int, int> memo;
+    int dp(int k, int n) {
+        if (memo.find(n * 100 + k) == memo.end()) {
+            int ans;
+            if (n == 0) {
+                ans = 0;
+            } else if (k == 1) {
+                ans = n;
+            } else {
+                int lo = 1, hi = n;
+                while (lo + 1 < hi) {
+                    int x = (lo + hi) / 2;
+                    int t1 = dp(k - 1, x - 1);
+                    int t2 = dp(k, n - x);
+
+                    if (t1 < t2) {
+                        lo = x;
+                    } else if (t1 > t2) {
+                        hi = x;
+                    } else {
+                        lo = hi = x;
+                    }
+                }
+
+                ans = 1 + min(max(dp(k - 1, lo - 1), dp(k, n - lo)),
+                              max(dp(k - 1, hi - 1), dp(k, n - hi)));
+            }
+
+            memo[n * 100 + k] = ans;
+        }
+
+        return memo[n * 100 + k];
+    }
+public:
+    int superEggDrop(int k, int n) {
+        return dp(k, n);
+    }
+};
+
+//658. Find K Closest Elements
+class Solution658 {
+public:
+    vector<int> findClosestElements(vector<int>& arr, int k, int x) {
+        int size = arr.size();
+        int left = 0;
+        int right = size - k;
+        while (left < right) {
+            int mid = (left + right) / 2;
+            if (x - arr[mid] > arr[mid + k] - x) {
+                left = mid + 1;
+            } else {
+                right = mid;
+            }
+        }
+
+        vector<int> res;
+        for (int i = left; i < left + k; i++) {
+            res.push_back(arr[i]);
+        }
+        return res;
+    }
+};
+
+//354. Russian Doll Envelopes
+class Solution354 {
+public:
+    int maxEnvelopes(vector<vector<int>>& envelopes) {
+        // Sort envelopes based on widths in ascending order
+        // If widths are equal, sort based on heights in descending order
+        sort(envelopes.begin(), envelopes.end(), [](const vector<int>& a, const vector<int>& b) {
+            return a[0] == b[0] ? a[1] > b[1] : a[0] < b[0];
+        });
+
+        // Find Longest Increasing Subsequence (LIS) based on heights
+        vector<int> dp;
+        for (const auto& envelope : envelopes) {
+            auto it = lower_bound(dp.begin(), dp.end(), envelope[1]);
+            if (it == dp.end()) {
+                dp.push_back(envelope[1]);
+            } else {
+                *it = envelope[1];
+            }
+        }
+
+        return dp.size();
+    }
+};
+
+//278. First Bad Version
+class Solution278 {
+    bool isBadVersion(int version);
+public:
+    int firstBadVersion(int n) {
+        int left = 0;
+        int right = n;
+        while (left<right) {
+            int mid = left + ((right-left)/2);
+            if (!isBadVersion(mid))
+                left = mid+1;
+            else
+                right = mid;
+        }
+        if (isBadVersion(left))
+            return left;
+        return -1;
+    }
+};
+
+//209. Minimum Size Subarray Sum
+class Solution209 {
+public:
+    int minSubArrayLen(int target, vector<int>& nums) {
+        int left = 0;
+        int right = 0;
+        int min_len = INT_MAX;
+        int sum = 0;
+        while ( right<nums.size()) {
+            sum += nums[right];
+            while (sum>=target) {
+                min_len = min(min_len, right-left);
+                sum -= nums[left++];
+            }
+            right++;
+        }
+        return min_len == INT_MAX ? 0:min_len+1;
+    }
+};
+
+//34. Find First and Last Position of Element in Sorted Array
+class Solution34 {
+public:
+    int binarySearch(vector<int>& nums, int target, bool lower) {
+        int left = 0, right = (int)nums.size() - 1, ans = (int)nums.size();
+        while (left <= right) {
+            int mid = (left + right) / 2;
+            if (nums[mid] > target || (lower && nums[mid] >= target)) {
+                right = mid - 1;
+                ans = mid;
+            } else {
+                left = mid + 1;
+            }
+        }
+        return ans;
+    }
+
+    vector<int> searchRange(vector<int>& nums, int target) {
+        int leftIdx = binarySearch(nums, target, true);
+        int rightIdx = binarySearch(nums, target, false) - 1;
+        if (leftIdx <= rightIdx && rightIdx < nums.size() && nums[leftIdx] == target && nums[rightIdx] == target) {
+            return vector<int>{leftIdx, rightIdx};
+        }
+        return vector<int>{-1, -1};
     }
 };
 #endif //NEETCODE150_BINARYSEARCH_H
