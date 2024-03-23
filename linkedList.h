@@ -765,4 +765,278 @@ public:
     }
 };
 
+//2130. Maximum Twin Sum of a Linked List
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution2130 {
+public:
+    int pairSum(ListNode* head) {
+        ListNode *fast = head, *slow = head;
+
+        while(fast && fast->next) {
+            slow = slow->next;
+            fast = fast->next->next;
+        }
+        slow = reverseList(slow);
+
+        int mx = 0;
+        while(head && slow) {
+            mx = max(mx, head->val + slow->val);
+            head = head->next;
+            slow = slow->next;
+        }
+
+        return mx;
+    }
+private:
+    ListNode* reverseList(ListNode* head) {
+        ListNode* prev = NULL;
+        ListNode* curr = head;
+        ListNode* NEXT = NULL;
+
+        while(curr) {
+            NEXT = curr->next;
+            curr->next = prev;
+            prev = curr;
+            curr = NEXT;
+        }
+
+        return prev;
+    }
+};
+
+//1721. Swapping Nodes in a Linked List
+class Solution1721 {
+public:
+    ListNode* swapNodes(ListNode* head, int k) {
+        if(head == NULL || head -> next == NULL)
+            return head;
+
+        ListNode *ptr = head, *beg = head, *end = head;
+        int a = 0;
+        while(ptr != NULL) {
+            a++;
+            if(a == k)
+                beg = ptr;
+            if(a >= k + 1)
+                end = end -> next;
+            ptr = ptr -> next;
+        }
+        int temp = beg -> val;
+        beg -> val = end -> val;
+        end -> val = temp;
+        return head;
+    }
+};
+
+//460. LFU Cache
+// 缓存的节点信息
+struct Node {
+    int key, val, freq;
+    Node(int _key,int _val,int _freq): key(_key), val(_val), freq(_freq){}
+};
+class LFUCache {
+    int minfreq, capacity;
+    unordered_map<int, list<Node>::iterator> key_table;
+    unordered_map<int, list<Node>> freq_table;
+public:
+    LFUCache(int _capacity) {
+        minfreq = 0;
+        capacity = _capacity;
+        key_table.clear();
+        freq_table.clear();
+    }
+
+    int get(int key) {
+        if (capacity == 0) return -1;
+        auto it = key_table.find(key);
+        if (it == key_table.end()) return -1;
+        list<Node>::iterator node = it -> second;
+        int val = node -> val, freq = node -> freq;
+        freq_table[freq].erase(node);
+        // 如果当前链表为空，我们需要在哈希表中删除，且更新minFreq
+        if (freq_table[freq].size() == 0) {
+            freq_table.erase(freq);
+            if (minfreq == freq) minfreq += 1;
+        }
+        // 插入到 freq + 1 中
+        freq_table[freq + 1].push_front(Node(key, val, freq + 1));
+        key_table[key] = freq_table[freq + 1].begin();
+        return val;
+    }
+
+    void put(int key, int value) {
+        if (capacity == 0) return;
+        auto it = key_table.find(key);
+        if (it == key_table.end()) {
+            // 缓存已满，需要进行删除操作
+            if (key_table.size() == capacity) {
+                // 通过 minFreq 拿到 freq_table[minFreq] 链表的末尾节点
+                auto it2 = freq_table[minfreq].back();
+                key_table.erase(it2.key);
+                freq_table[minfreq].pop_back();
+                if (freq_table[minfreq].size() == 0) {
+                    freq_table.erase(minfreq);
+                }
+            }
+            freq_table[1].push_front(Node(key, value, 1));
+            key_table[key] = freq_table[1].begin();
+            minfreq = 1;
+        } else {
+            // 与 get 操作基本一致，除了需要更新缓存的值
+            list<Node>::iterator node = it -> second;
+            int freq = node -> freq;
+            freq_table[freq].erase(node);
+            if (freq_table[freq].size() == 0) {
+                freq_table.erase(freq);
+                if (minfreq == freq) minfreq += 1;
+            }
+            freq_table[freq + 1].push_front(Node(key, value, freq + 1));
+            key_table[key] = freq_table[freq + 1].begin();
+        }
+    }
+};
+
+//1472. Design Browser History
+class BrowserHistory {
+private:
+    stack<string> history;
+    stack<string> future;
+
+public:
+    BrowserHistory(string homepage) {
+        history.push(homepage);
+    }
+
+    void visit(string url) {
+        history.push(url);
+        while (!future.empty()) {
+            future.pop(); // Clear the forward history
+        }
+    }
+
+    string back(int steps) {
+        while (steps-- && history.size() > 1) {
+            future.push(history.top());
+            history.pop();
+        }
+        return history.top();
+    }
+
+    string forward(int steps) {
+        while (steps-- && !future.empty()) {
+            history.push(future.top());
+            future.pop();
+        }
+        return history.top();
+    }
+};
+
+//147. Insertion Sort List
+class Solution1147 {
+public:
+    ListNode* insertionSortList(ListNode* head) {
+        if(head == NULL || head -> next == NULL) {
+            return head;
+        }
+
+        ListNode *ptr1 = head -> next, *sortedPtr = head;
+        while(ptr1 != NULL) {
+            if(ptr1 -> val < sortedPtr -> val) {
+                ListNode *ptr2 = head, *lagPtr = head;
+                while(true) {
+                    if(ptr2 -> val > ptr1 -> val) {
+                        if(ptr2 == head) {
+                            sortedPtr -> next = ptr1 -> next;
+                            ptr1 -> next = head;
+                            head = ptr1;
+                            ptr1 = sortedPtr -> next;
+                            break;
+                        }
+                        else {
+                            sortedPtr -> next = ptr1 -> next;
+                            ptr1 -> next = ptr2;
+                            lagPtr -> next = ptr1;
+                            ptr1 = sortedPtr -> next;
+                            break;
+                        }
+                    }
+                    lagPtr = ptr2;
+                    ptr2 = ptr2 -> next;
+                }
+
+            } else {
+                sortedPtr = sortedPtr -> next;
+                ptr1 = ptr1 -> next;
+            }
+        }
+
+        return head;
+    }
+};
+
+//725. Split Linked List in Parts
+class Solution725 {
+public:
+    vector<ListNode*> splitListToParts(ListNode* head, int k) {
+        int length = 0;
+        ListNode* curr = head;
+        while (curr) {
+            length++;
+            curr = curr->next;
+        }
+
+        int partSize = length / k;
+        int extra = length % k;
+
+        vector<ListNode*> result;
+        curr = head;
+        for (int i = 0; i < k; i++) {
+            ListNode* dummy = new ListNode(0);
+            ListNode* prev = dummy;
+            for (int j = 0; j < partSize + (i < extra ? 1 : 0); j++) {
+                if (curr) {
+                    prev->next = new ListNode(curr->val);
+                    prev = prev->next;
+                    curr = curr->next;
+                }
+            }
+            result.push_back(dummy->next);
+        }
+
+        return result;
+    }
+};
+
+//328. Odd Even Linked List
+class Solution328 {
+public:
+    ListNode* oddEvenList(ListNode* head) {
+        if(head== nullptr ){
+            return head;
+        }
+        ListNode *stepOdd = head;
+        ListNode *Even = new ListNode(0);
+        ListNode *stepEven = Even;
+        while(stepOdd->next!= nullptr){
+            stepEven->next = stepOdd->next;
+            stepEven = stepEven->next;
+            stepOdd->next = stepOdd->next->next;
+            if(stepOdd->next!= nullptr){
+                stepOdd = stepOdd->next;
+            }
+        }
+        stepEven->next = nullptr;
+        stepOdd->next = Even->next;
+        return head;
+    }
+};
 #endif //NEETCODE150_LINKEDLIST_H

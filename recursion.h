@@ -679,7 +679,7 @@ public:
 };
 
 //234. Palindrome Linked List
-class Solution234 {
+class Solution234_recursion {
     ListNode* left;
     bool helper(ListNode* right) {
         if (right != nullptr) {
