@@ -38,4 +38,6 @@ struct TreeNode {
     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
 };
 
+const unsigned MOD = 1e9 + 7;
+
 #endif //NEETCODE150_COMMON_H
