@@ -559,6 +559,31 @@ public:
     }
 };
 
+//1049. Last Stone Weight II
+class Solution1049 {
+public:
+    int lastStoneWeightII(vector<int>& stones) {
+        int totalWeight = accumulate(stones.begin(), stones.end(), 0);
+        // Target weight is to try splitting stones into two groups with equal weight
+        int targetWeight = totalWeight >> 1;
+        vector<int> dp(targetWeight + 1, 0);
+
+        // DP approach to find the closest sum to the targetWeight
+        for (auto& stone : stones) {
+            // Traverse dp array backwards for this pass, to avoid using a stone twice
+            for (int j = targetWeight; j >= stone; --j) {
+                // Update dp[j] to the higher of the two values;
+                // either the current dp[j] or the sum of stone and dp[j - stone] if we include the stone
+                dp[j] = max(dp[j], dp[j - stone] + stone);
+            }
+        }
+
+        // The answer is the total weight minus twice the optimized closest sum to half of the total weight
+        // This represents the minimal possible weight difference between two groups
+        return totalWeight - dp[targetWeight] * 2;
+    }
+};
+
 //309. Best Time to Buy and Sell Stock with Cooldown
 class Solution309 {
 public:
@@ -574,11 +599,131 @@ public:
     }
 };
 
-//518. Coin Change II
-class Solution518 {
+//877. Stone Game
+class Solution877 {
 public:
-    int change(int amount, vector<int>& coins) {
+    bool stoneGame(vector<int>& piles) {
+        int n = piles.size();
+        vector<vector<int>> dp(n+1, vector<int>(n+1));
+        for (int len = 0; len < n; len++) {
+            for (int left = 0; left+len < n; left++) {
+                if (len == 0) {
+                    dp[left][left] = piles[left];
+                    continue;
+                }
 
+                int right = left + len;
+                dp[left][right] = max(piles[left] - dp[left+1][right], piles[right] - dp[left][right-1]);
+            }
+        }
+        return dp[0][n-1] > 0;
+    }
+};
+
+//64. Minimum Path Sum
+class Solution64 {
+public:
+    int minPathSum(vector<vector<int>>& grid) {
+        int n = grid.size();
+        int m = grid[0].size();
+        vector<vector<int>> dp(n, vector<int>(m));
+        dp[0][0] = grid[0][0];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                if (i == 0 && j == 0) {
+                    continue;
+                }
+                dp[i][j] = grid[i][j] + min( ((i>0) ? dp[i-1][j] : INT_MAX),
+                                             ((j>0) ? dp[i][j-1] : INT_MAX));
+            }
+        }
+        return dp[n-1][m-1];
+    }
+};
+
+//329. Longest Increasing Path in a Matrix
+class Solution329 {
+public:
+    int longestIncreasingPath(vector<vector<int>>& matrix) {
+        int m = matrix.size();
+        int n = matrix[0].size();
+
+        int result = 0;
+
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                result = max(result, dfs(matrix, -1, i, j, m, n));
+            }
+        }
+
+        return result;
+    }
+private:
+    // {(i, j) -> longest increasing path at (i, j)}
+    map<pair<int, int>, int> dp;
+
+    int dfs(vector<vector<int>>& matrix, int prev, int i, int j, int m, int n) {
+        if (i < 0 || i >= m || j < 0 || j >= n || matrix[i][j] <= prev) {
+            return 0;
+        }
+        if (dp.find({i, j}) != dp.end()) {
+            return dp[{i, j}];
+        }
+
+        int result = 1;
+        result = max(result, 1 + dfs(matrix, matrix[i][j], i - 1, j, m, n));
+        result = max(result, 1 + dfs(matrix, matrix[i][j], i + 1, j, m, n));
+        result = max(result, 1 + dfs(matrix, matrix[i][j], i, j - 1, m, n));
+        result = max(result, 1 + dfs(matrix, matrix[i][j], i, j + 1, m, n));
+        dp[{i, j}] = result;
+
+        return dp[{i, j}];
+    }
+};
+
+//221. Maximal Square
+class Solution221 {
+public:
+    int maximalSquare(vector<vector<char>>& matrix) {
+        int rows = matrix.size(), cols = matrix[0].size();
+
+        vector<vector<int>> dp (rows+1, vector<int>(cols+1, 0));
+        int maxi = 0;
+        for(int i = rows-1 ; i >= 0; --i) {
+            for(int j = cols-1 ; j >=0 ; --j) {
+                if(matrix[i][j] == '1') {
+                    int right = dp[i][j+1], dia = dp[i+1][j+1], bottom = dp[i+1][j];
+
+                    dp[i][j] = 1 + min(right, min(dia, bottom));
+                    maxi = max(maxi, dp[i][j]);
+                }
+                else {
+                    dp[i][j] = 0;
+                }
+            }
+        }
+        return maxi*maxi;
+    }
+};
+
+//474. Ones and Zeroes
+class Solution474 {
+public:
+    int findMaxForm(vector<string>& strs, int m, int n) {
+        vector<vector<int>> dp(m + 1, vector<int>(n + 1));
+
+        for (auto& str: strs) {
+            int zeros = count(str.begin(), str.end(), '0');
+            int ones = str.size() - zeros;
+
+            for (int i = m; i >= zeros; --i) {
+                for (int j = n; j >= ones; --j) {
+                    dp[i][j] = max(dp[i][j], dp[i-zeros][j-ones] + 1);
+                }
+            }
+        }
+
+        return dp[m][n];
     }
 };
 
