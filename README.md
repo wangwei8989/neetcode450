@@ -5,6 +5,9 @@ all of the problems i solved on leetcode
 
     two points
     sliding window
+    stack
+    binary search
+    linked list
     bit manipulation
 ## bit manipulation
     x & -x : Find the rightmost set bit

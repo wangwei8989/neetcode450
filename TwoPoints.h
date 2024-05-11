@@ -320,36 +320,29 @@ public:
 class Solution1498 {
 public:
     int numSubseq(vector<int>& nums, int target) {
+        const int mod = 1e9 + 7;
         sort(nums.begin(), nums.end());
         int n = nums.size();
 
         int left = 0;
         int right = n - 1;
-        int res = 0;
-        int mod = 1e9 + 7;
-        while (left <= right) {
-            if (nums[left] + nums[right] > target) {
-                right--;
-            }
-            else {
-                res = (res + fastPower(2, right - left, mod)) % mod;
-                left++;
-            }
-        }
-        return res;
-    }
+        long long result = 0;
 
-    int fastPower(int a, int b, int mod) {
-        long long ans = 1;
-        long long base = a;
-        while (b != 0) {
-            if (b % 2 == 1) {
-                ans = (ans * base) % mod;
-            }
-            base = (base * base) % mod;
-            b /= 2;
+        // Use binary exponentiation to calculate powers of 2 modulo mod
+        vector<long long> pow2(n, 1);
+        for (int i = 1; i < n; ++i) {
+            pow2[i] = (pow2[i - 1] * 2) % mod;
         }
-        return ans;
+
+        while (left <= right) {
+            if (nums[left] + nums[right] <= target) {
+                result = (result + pow2[right - left]) % mod;
+                ++left;
+            } else {
+                --right;
+            }
+        }
+        return result;
     }
 };
 
