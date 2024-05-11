@@ -6,6 +6,38 @@
 #define NEETCODE150_GRAPHS_H
 
 #include "common.h"
+//953. Verifying an Alien Dictionary
+class Solution953 {
+public:
+    bool isAlienSorted(vector<string>& words, string order) {
+        unordered_map<char, int> charToIndex;
+        for (int i = 0; i < order.size(); ++i) {
+            charToIndex[order[i]] = i;
+        }
+
+        for (int i = 1; i < words.size(); ++i) {
+            if (!isSorted(words[i - 1], words[i], charToIndex)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+private:
+    bool isSorted(const string& word1, const string& word2, const unordered_map<char, int>& charToIndex) {
+        int n = min(word1.size(), word2.size());
+        for (int j = 0; j < n; ++j) {
+            char c1 = word1[j];
+            char c2 = word2[j];
+            if (c1 != c2) {
+                return charToIndex.at(c1) < charToIndex.at(c2);
+            }
+        }
+        return word1.size() <= word2.size();
+    }
+};
+
 //200. Number of Islands
 class Solution200 {
 public:
@@ -38,13 +70,51 @@ private:
 };
 
 //133. Clone Graph
-//solved in dfs.h
+class Node {
+public:
+    int val;
+    vector<Node*> neighbors;
+    Node() {
+        val = 0;
+        neighbors = vector<Node*>();
+    }
+    Node(int _val) {
+        val = _val;
+        neighbors = vector<Node*>();
+    }
+    Node(int _val, vector<Node*> _neighbors) {
+        val = _val;
+        neighbors = _neighbors;
+    }
+};
+
+class Solution133 {
+public:
+    unordered_map<Node*, Node*> seen;
+    Node* cloneGraph(Node* node) {
+        if (node == nullptr)
+            return nullptr;
+        if (seen.count(node)!=0) {
+            return seen[node];
+        }
+
+        Node* cloneNode = new Node(node->val);
+        seen[node] = cloneNode;
+
+        for (auto neighbor:node->neighbors) {
+            //emplace_back() can be more efficient when constructing objects with complex constructors,
+            //as it avoids the overhead of creating temporary objects.
+            cloneNode->neighbors.emplace_back(cloneGraph(neighbor));
+        }
+        return cloneNode;
+    }
+};
 
 //695. Max Area of Island
 class Solution695 {
 public:
     int maxAreaOfIsland(vector<vector<int>>& grid) {
-        int result = 0;
+        int maxArea = 0;
         int m = grid.size();
         int n = grid[0].size();
         for (int i=0; i<grid.size(); i++) {
@@ -52,11 +122,11 @@ public:
                 if (grid[i][j] == 1) {
                     int count = 0;
                     dfs(grid, count, i, j, m, n);
-                    result = max(result, count);
+                    maxArea = max(maxArea, count);
                 }
             }
         }
-        return result;
+        return maxArea;
     }
 
 private:
@@ -70,6 +140,134 @@ private:
         dfs(grid, count, i-1, j, m, n);
         dfs(grid, count, i, j-1, m, n);
         dfs(grid, count, i, j+1, m, n);
+    }
+};
+
+//286. Walls and gates
+/*You are given an m x n grid rooms initialized with these three possible values.
+ -1 A wall or an obstacle.
+ 0 A gate.
+ INF Infinity means an empty room.
+ We use the value 231 - 1 = 2147483647 to represent INF as you may assume that the distance to a gate is less than 2147483647.
+ Fill each empty room with the distance to its nearest gate. If it is impossible to reach a gate, it should be filled with INF.
+*/
+class Solution286 {
+public:
+    void wallsAndGates(vector<vector<int>>& rooms) {
+        int rows = rooms.size();
+        int cols = rooms[0].size();
+
+        queue<pair<int, int>> q;
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (rooms[i][j] == 0) {
+                    q.push({i, j});
+                }
+            }
+        }
+
+        while (!q.empty()) {
+            int row = q.front().first;
+            int col = q.front().second;
+            q.pop();
+
+            for (int i = 0; i < 4; i++) {
+                int x = row + dirs[i][0];
+                int y = col + dirs[i][1];
+
+                if (x < 0 || x >= rows || y < 0 || y >= cols || rooms[x][y] != INT_MAX) {
+                    continue;
+                }
+
+                rooms[x][y] = rooms[row][col] + 1;
+                q.push({x, y});
+            }
+        }
+    }
+private:
+    vector<vector<int>> dirs = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+};
+
+//994. Rotting Oranges
+class Solution994 {
+public:
+    int orangesRotting(vector<vector<int>>& grid) {
+        int m = grid.size();
+        int n = grid[0].size();
+
+        queue<pair<int, int>> rotten;
+        int fresh = 0;
+
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                if (grid[i][j] == 2)
+                    rotten.push({i, j});
+                else if (grid[i][j] == 1)
+                    ++fresh;
+            }
+        }
+
+        int minutes = 0;
+        vector<vector<int>> directions = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+
+        while (!rotten.empty() && fresh > 0) {
+            int size = rotten.size();
+            while (size--) {
+                auto& [x, y] = rotten.front();
+                rotten.pop();
+
+                for (auto& dir : directions) {
+                    int nx = x + dir[0];
+                    int ny = y + dir[1];
+                    if (nx >= 0 && nx < m && ny >= 0 && ny < n && grid[nx][ny] == 1) {
+                        grid[nx][ny] = 2;
+                        rotten.push({nx, ny});
+                        --fresh;
+                    }
+                }
+            }
+            ++minutes;
+        }
+
+        return fresh == 0 ? minutes : -1;
+    }
+};
+
+//1905. Count Sub Islands
+class Solution1905 {
+public:
+    int countSubIslands(vector<vector<int>>& grid1, vector<vector<int>>& grid2) {
+        const int ROWS = grid1.size(), COLS = grid1[0].size();
+        unordered_set<int> visited;
+
+        function<bool(int, int)> dfs = [&] (int r, int c) -> bool {
+            if (    r < 0
+                    || c < 0
+                    || r == ROWS
+                    || c == COLS
+                    || grid2[r][c] == 0
+                    || visited.count(r*COLS + c)
+                    )
+                return true;
+
+            visited.insert(r*COLS + c);
+            bool res = true;
+            if(grid1[r][c] == 0)
+                res = false;
+
+            res = dfs(r - 1, c) && res;
+            res = dfs(r + 1, c) && res;
+            res = dfs(r, c - 1) && res;
+            res = dfs(r, c + 1) && res;
+            return res;
+        };
+
+        int count = 0;
+        for(int r = 0; r < ROWS; r++)
+            for(int c = 0; c < COLS; c++)
+                if (grid2[r][c] && !visited.count(r*COLS + c) && dfs(r, c))
+                    count += 1;
+        return count;
     }
 };
 
@@ -100,6 +298,8 @@ public:
         }
         return result;
     }
+
+private:
     void dfs(vector<vector<int>>& heights, vector<vector<bool>>& visited,
              int i, int j, const int& m, const int& n) {
         visited[i][j] = true;
@@ -145,6 +345,7 @@ public:
             }
         }
     }
+
 private:
     void dfs(vector<vector<char>>& board, int i, int j, int m, int n) {
         if (i < 0 || i >= m || j < 0 || j >= n || board[i][j] != 'O') {
@@ -160,97 +361,126 @@ private:
     }
 };
 
-//994. Rotting Oranges
-class Solution994 {
+//1466. Reorder Routes to Make All Paths Lead to the City Zero
+class Solution1466 {
 public:
-    int orangesRotting(vector<vector<int>>& grid) {
-        int m = grid.size();
-        int n = grid[0].size();
-        queue<pair<int, int>> q;
-        int fresh = 0;
-        for (int i=0; i<m; i++) {
-            for (int j=0; j<n; j++) {
-                if (grid[i][j] == 2)
-                    q.push({i,j});
-                if (grid[i][j] == 1)
-                    fresh++;
-            }
+    int minReorder(int n, vector<vector<int>>& connections) {
+        unordered_map<int, vector<vector<int>> > map;
+        unordered_set<int> visited;
+
+        for (auto& road: connections) {
+            map[road[0]].emplace_back(road);
+            map[road[1]].emplace_back(road);
         }
 
-        int result = -1;
-        while (!q.empty()) {
-            result++;
-            int size = q.size();
-            for (int count=0; count<size; count++) {
-                auto& [x, y] = q.front();
-                q.pop();
-                if (grid[x][y] == 1)
-                    fresh--;
-                grid[x][y] = 2;
-                if (x>0 && grid[x-1][y] == 1)
-                    q.push({x-1, y});
-                if (x<m-1 && grid[x+1][y] == 1)
-                    q.push({x+1, y});
-                if (y>0 && grid[x][y-1] == 1)
-                    q.push({x, y-1});
-                if (y<n-1 && grid[x][y+1] == 1)
-                    q.push({x, y+1});
+        int result = 0;
+        queue<int> cities;
+        cities.emplace(0);
+        while (!cities.empty()) {
+            auto& city = cities.front();
+            visited.emplace(city);
+
+            auto& roads = map[city];
+            for (auto& road: roads) {
+                if (road[1] != city && visited.count(road[1]) == 0) {
+                    result++;
+                    swap(road[0], road[1]);
+                }
+                if (visited.count(road[0]) == 0)
+                    cities.emplace(road[0]);
             }
+
+            cities.pop();
         }
-        if (fresh != 0)
-            return -1;
         return result;
     }
 };
 
-//286. Walls and gates
-class Solution286 {
+//752. Open the Lock
+class Solution752 {
 public:
-    void wallsAndGates(vector<vector<int>>& rooms) {
-        int m = rooms.size();
-        int n = rooms[0].size();
+    int openLock(vector<string>& deadends, string target) {
+        set<string> deads(deadends.begin(), deadends.end());
 
-        queue<pair<int, int>> q;
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < n; j++) {
-                if (rooms[i][j] == 0) {
-                    q.push({i, j});
-                }
-            }
+        queue<string> Queue;
+        if (!deads.count("0000")) {
+            deads.insert("0000");
+            Queue.emplace("0000");
         }
 
-        while (!q.empty()) {
-            int row = q.front().first;
-            int col = q.front().second;
-            q.pop();
+        int turns = 0;
+        while (!Queue.empty()) {
+            int size = Queue.size();
+            while (size-- > 0) {
+                string& str = Queue.front();
+                if (str == target)
+                    return turns;
 
-            for (int i = 0; i < 4; i++) {
-                int x = row + dirs[i][0];
-                int y = col + dirs[i][1];
+                for (int i = 0; i < 4; i++) {
+                    string temp = str;
+                    temp[i] = (str[i] - 1)=='/'? '9' : (str[i] - 1);
+                    if (!deads.count(temp)) {
+                        deads.insert(temp);
+                        Queue.emplace(temp);
+                    }
 
-                if (x < 0 || x >= m || y < 0 || y >= n || rooms[x][y] != INT_MAX) {
-                    continue;
+                    temp[i] = (str[i] + 1)==':'? '0': (str[i] + 1);
+                    if (!deads.count(temp)) {
+                        deads.insert(temp);
+                        Queue.emplace(temp);
+                    }
                 }
-
-                rooms[x][y] = rooms[row][col] + 1;
-                q.push({x, y});
+                Queue.pop();
             }
+            turns++;
         }
+        return -1;
     }
+};
+
+//802. Find Eventual Safe States
+class Solution802 {
+public:
+    vector<int> eventualSafeNodes(vector<vector<int>>& graph) {
+        int n = graph.size();
+        vector<int> res;
+        visited = vector<int>(n, -1);
+        for (int i=0; i<n; i++) {
+            if (dfs(i, graph)) {
+                continue;
+            }
+            res.emplace_back(i);
+        }
+        return res;
+    }
+
 private:
-    vector<vector<int>> dirs = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+    vector<int> visited;
+    bool dfs(int i, vector<vector<int>>& graph) {
+        if (visited[i]!=-1)
+            return visited[i];
+
+        visited[i] = 1;
+        for (auto x:graph[i]) {
+            if (dfs(x, graph)) {
+                return true;
+            }
+        }
+
+        visited[i] = 0;
+        return false;
+    }
 };
 
 //207. Course Schedule
 class Solution207 {
 public:
     bool canFinish(int numCourses, vector<vector<int>>& prerequisites) {
-        // map each course to prereq list
         unordered_map<int, vector<int>> m;
-        for (int i = 0; i < prerequisites.size(); i++) {
-            m[prerequisites[i][0]].push_back(prerequisites[i][1]);
+        for (auto& pre: prerequisites) {
+            m[pre[0]].push_back(pre[1]);
         }
-        // all courses along current DFS path
+
         unordered_set<int> visited;
 
         for (int course = 0; course < numCourses; course++) {
@@ -286,16 +516,15 @@ class Solution210 {
 public:
     vector<int> findOrder(int numCourses, vector<vector<int>>& prerequisites) {
         unordered_map<int, vector<int>> m;
-        // build adjacency list of prereqs
-        for (int i = 0; i < prerequisites.size(); i++) {
-            m[prerequisites[i][0]].push_back(prerequisites[i][1]);
+        for (auto pre: prerequisites) {
+            m[pre[0]].push_back(pre[1]);
         }
-        unordered_set<int> visit;
+        unordered_set<int> visited;
         unordered_set<int> cycle;
 
         vector<int> result;
         for (int course = 0; course < numCourses; course++) {
-            if (!dfs(course, m, visit, cycle, result)) {
+            if (!dfs(course, m, visited, cycle, result)) {
                 return {};
             }
         }
@@ -306,32 +535,892 @@ private:
     // visited -> course added to result
     // visiting -> course not added to result, but added to cycle
     // unvisited -> course not added to result or cycle
-    bool dfs(int course, unordered_map<int, vector<int>>& m, unordered_set<int>& visit,
+    bool dfs(int course, unordered_map<int, vector<int>>& m, unordered_set<int>& visited,
              unordered_set<int>& cycle, vector<int>& result) {
 
         if (cycle.find(course) != cycle.end()) {
             return false;
         }
-        if (visit.find(course) != visit.end()) {
+        if (visited.find(course) != visited.end()) {
             return true;
         }
         cycle.insert(course);
         for (int i = 0; i < m[course].size(); i++) {
             int nextCourse = m[course][i];
-            if (!dfs(nextCourse, m, visit, cycle, result)) {
+            if (!dfs(nextCourse, m, visited, cycle, result)) {
                 return false;
             }
         }
         cycle.erase(course);
-        visit.insert(course);
+        visited.insert(course);
         result.push_back(course);
         return true;
     }
 };
 
+//261. Graph Valid Tree
+/*
+Given n nodes labeled from 0 to n-1 and a list of undirected edges (each edge is a pair of nodes),
+write a function to check whether these edges make up a valid tree.
+Example 1:
+Input: n = 5, and edges = [[0,1], [0,2], [0,3], [1,4]]
+Output: true
+Example 2:
+Input: n = 5, and edges = [[0,1], [1,2], [2,3], [1,3], [1,4]]
+Output: false
+ */
+class Solution261 {
+public:
+    bool validTree(int n, vector<vector<int>>& edges) {
+        visited.resize(n);
+        fill (visited.begin(), visited.end(), -1);
+        graph.resize(n);
+
+        for (auto& edge : edges) {
+            graph[edge[0]].emplace_back(edge[1]);
+            graph[edge[1]].emplace_back(edge[0]);
+        }
+
+        for (int i=0; i<n; i++) {
+            if (dfs(-1, i))
+                return false;
+        }
+
+        for (auto v : visited) {
+            if (v != -1)
+                return false;
+        }
+
+        return true;
+    }
+
+private:
+    vector<int> visited;
+    vector<vector<int>> graph;
+
+    bool dfs(int pre, int cur) {
+        if (visited[cur] == 1)
+            return true;
+        if (visited[cur] == 0)
+            return false;
+
+        visited[cur] = 1;
+        for (auto next: graph[cur]) {
+            if (pre == next)
+                continue;
+            if (dfs(cur, next))
+                return true;
+        }
+        visited[cur] = 0;
+        return false;
+    }
+};
+
+//1462. Course Schedule IV
+
+//1958. Check if Move is Legal
+class Solution1958 {
+public:
+    bool checkMove(vector<vector<char>>& board, int rMove, int cMove, char color) {
+        const int ROWS = board.size();
+        const int COLS = board[0].size();
+        vector<vector<int>> directions = {{0, -1}, {0, 1}, {-1, 0}, {1, 0},
+                                          {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+
+        board[rMove][cMove] = color;
+        function<bool(int, int, char, vector<int>&)> legal =
+                [&] (int row, int col, char color, vector<int>& direction) -> bool {
+            row += direction[0];
+            col += direction[1];
+            int length = 1;
+
+            while (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
+                length += 1;
+                if (board[row][col] == '.')
+                    return false;
+                if (board[row][col] == color)
+                    return length >= 3;
+                row += direction[0];
+                col += direction[1];
+            }
+            return false;
+        };
+
+        for (auto& d: directions) {
+            if ( legal(rMove, cMove, color, d) )
+                return true;
+        }
+        return false;
+    }
+};
+
+//934. Shortest Bridge
+class Solution934 {
+public:
+    int shortestBridge(vector<vector<int>>& A) {
+        const int n = A.size();
+        vector<vector<int>> directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+        queue<pair<int, int>> q;
+
+        function<void(int, int)> markIsland = [&] (int row, int col) -> void {
+            A[row][col] = -1;
+            q.emplace(row * n + col, 0);
+            for (auto d: directions) {
+                int next_row = row + d[0];
+                int next_col = col + d[1];
+                if (next_row >= 0 && next_row < n && next_col >= 0 && next_col < n &&
+                    A[next_row][next_col] == 1) {
+                    markIsland(next_row, next_col);
+                }
+            }
+        };
+
+        // mark island of one group as -1
+        bool found = false;
+        for (int i = 0; i < n && !found; ++i) {
+            for (int j = 0; j < n && !found; ++j) {
+                if (A[i][j] == 1) {
+                    markIsland(i, j);
+                    found = true;
+                }
+            }
+        }
+
+        while (!q.empty()) {
+            auto& [index, flips] = q.front();
+            int row = index / n;
+            int col = index % n;
+
+            for (auto& d: directions) {
+                int next_row = row + d[0];
+                int next_col = col + d[1];
+
+                if (next_row >= 0 && next_row < n && next_col >= 0 && next_col < n) {
+                    if (A[next_row][next_col] == 1)
+                        return flips;
+                    if (A[next_row][next_col] == -1)
+                        continue;
+                    q.emplace(next_row * n + next_col, flips + 1);
+                    A[next_row][next_col] = -1;
+                }
+            }
+
+            q.pop();
+        }
+        return -1;
+    }
+};
+
+//1091. Shortest Path in Binary Matrix
+class Solution1091 {
+public:
+    int shortestPathBinaryMatrix(vector<vector<int>>& grid) {
+        const int n = grid.size();
+        if (grid[0][0] != 0 || grid[n-1][n-1] != 0)
+            return -1;
+
+        vector<vector<int>> directions = {{0, -1}, {0, 1}, {-1, 0}, {1, 0},
+                                          {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
+        queue<pair<int, int>> q;
+        q.emplace(0, 1);
+
+        while (!q.empty()) {
+            auto& [index, flips] = q.front();
+            int row = index / n;
+            int col = index % n;
+            if (row == n - 1 && col == n - 1)
+                return flips;
+
+            for (auto& d: directions) {
+                int next_row = row + d[0];
+                int next_col = col + d[1];
+                if (next_row >= 0 && next_row < n && next_col >= 0 && next_col < n &&
+                    grid[next_row][next_col] == 0) {
+                    q.emplace(next_row * n + next_col, flips + 1);
+                    grid[next_row][next_col] = 1;
+                }
+            }
+
+            q.pop();
+        }
+
+        return -1;
+    }
+};
+
 //684. Redundant Connection
+class Solution684 {
+    unordered_map<int, unordered_set<int>> graph;
+    unordered_set<int> visited;
+public:
+    vector<int> findRedundantConnection(vector<vector<int>>& edges) {
+        vector<int> res;
+        for (auto& edge: edges) {
+            int u = edge[0];
+            int v = edge[1];
+
+            if (graph.count(u) && graph.count(v)) {
+                visited.clear();
+                if (dfs(u, v)) {
+                    return edge;
+                }
+            }
+
+            graph[u].emplace(v);
+            graph[v].emplace(u);
+        }
+        return res;
+    }
+
+private:
+    bool dfs(int s, int t) {
+        if (s==t) {
+            return true;
+        }
+
+        visited.emplace(s);
+        for (auto& adj: graph[s]) {
+            if (!visited.count(adj) && dfs(adj, t)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+};
+
+//1162. As Far from Land as Possible
+class Solution1162 {
+public:
+    int maxDistance(vector<vector<int>>& grid) {
+        queue<pair<int, int>> q;
+        int n= grid.size();
+
+        for (int i=0; i<n; i++) {
+            for (int j=0; j<n; j++) {
+                if (grid[i][j] == 1) {
+                    q.emplace(i, j);
+                }
+            }
+        }
+
+        vector<vector<int>> directions = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+        int result = 0;
+        while (!q.empty()) {
+            auto& [row, col] = q.front();
+
+            for (auto& d: directions) {
+                int next_row = row + d[0];
+                int next_col = col + d[1];
+                if (next_row >= 0 && next_row < n && next_col >= 0 && next_col < n
+                    && grid[next_row][next_col] == 0) {
+                        grid[next_row][next_col] = grid[row][col] + 1;
+                        result = max(result, grid[next_row][next_col]);
+                        q.emplace(next_row, next_col);
+                }
+            }
+
+            q.pop();
+        }
+        return result - 1;
+    }
+};
+
+//1020. Number of Enclaves
+class Solution1020 {
+public:
+    int numEnclaves(vector<vector<int>>& grid) {
+        int ROWS = grid.size();
+        int COLS = grid[0].size();
+        vector<vector<int>> directions = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+
+        function<void(int, int)> bfs = [&](int r, int c) {
+            queue<pair<int, int>> q;
+            q.emplace(r, c);
+            grid[r][c] = 0; // Mark as visited
+            while (!q.empty()) {
+                auto [row, col] = q.front();
+                q.pop();
+                for (auto& dir : directions) {
+                    int nextRow = row + dir[0];
+                    int nextCol = col + dir[1];
+                    if (nextRow >= 0 && nextRow < ROWS && nextCol >= 0 && nextCol < COLS &&
+                        grid[nextRow][nextCol] == 1) {
+                        grid[nextRow][nextCol] = 0; // Mark as visited
+                        q.emplace(nextRow, nextCol);
+                    }
+                }
+            }
+        };
+        for (int i=0; i<ROWS; i++) {
+            if (grid[i][0] == 1)
+                bfs(i, 0);
+            if (grid[i][COLS-1] == 1)
+                bfs(i, COLS-1);
+        }
+        for (int j=0; j<COLS; j++) {
+            if (grid[0][j] == 1)
+                bfs(0, j);
+
+            if (grid[ROWS-1][j] == 1)
+                bfs(ROWS-1, j);
+        }
+
+        int count = 0;
+        for (int i=0; i<ROWS; i++) {
+            for (int j=0; j<COLS; j++) {
+                if (grid[i][j] == 1)
+                    count++;
+            }
+        }
+        return count;
+    }
+};
+
+//1254. Number of Closed Islands
+class Solution1254 {
+public:
+    int closedIsland(vector<vector<int>>& grid) {
+        int ROWS = grid.size();
+        int COLS = grid[0].size();
+        vector<vector<int>> directions = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+
+        function<void(int, int)> bfs = [&] (int r, int c) {
+            queue<pair<int, int>> q;
+            q.emplace(r, c);
+            grid[r][c] = 1;
+            while (!q.empty()) {
+                auto [row, col] = q.front();
+                q.pop();
+                for (auto dir: directions) {
+                    int nextRow = dir[0] + row;
+                    int nextCol = dir[1] + col;
+                    if (nextRow >= 0 && nextRow < ROWS && nextCol >= 0 && nextCol < COLS &&
+                        grid[nextRow][nextCol] == 0) {
+                        grid[nextRow][nextCol] = 1;
+                        q.emplace(nextRow, nextCol);
+                    }
+                }
+            }
+        };
+
+        for (int i=0; i<ROWS; i++) {
+            if (grid[i][0] == 0)
+                bfs(i, 0);
+            if (grid[i][COLS-1] == 0)
+                bfs(i, COLS-1);
+        }
+        for (int j=0; j<COLS; j++) {
+            if (grid[0][j] == 0)
+                bfs(0, j);
+            if (grid[ROWS-1][j] == 0)
+                bfs(ROWS-1, j);
+        }
+
+        int count = 0;
+        for (int i=0; i<ROWS; i++) {
+            for (int j=0; j<COLS; j++) {
+                if (grid[i][j]==0) {
+                    count++;
+                    bfs(i, j);
+                }
+            }
+        }
+        return count;
+    }
+};
+
+//1553. Minimum Number of Days to Eat N Oranges
+class Solution1153_bfs {
+public:
+    int minDays(int n) {
+        queue<int> q;
+        unordered_set<int> visited;
+
+        q.emplace(n);
+        visited.emplace(n);
+        int count = 0;
+
+        while (!q.empty()) {
+            count++;
+            int size = q.size();
+            while (size--) {
+
+                int num = q.front();
+                if (num == 0)
+                    return count - 1;
+                q.pop();
+
+                if ((num & 1) == 0 && visited.find(num / 2) == visited.end()) {
+                    q.emplace(num / 2);
+                    visited.emplace(num / 2);
+                }
+                if (num % 3 == 0 && visited.find(num / 3) == visited.end()) {
+                    q.emplace(num / 3);
+                    visited.emplace(num / 3);
+                }
+                if (visited.find(num - 1) == visited.end()) {
+                    q.emplace(num - 1);
+                    visited.emplace(num - 1);
+                }
+            }
+        }
+
+        return n;
+    }
+};
+
+class Solution1553_dfs_greedy_memo {
+public:
+    int minDays(int n) {
+        memo[0] = 0;
+        //this is also base case, o.w. memo[1] will be calculated as 2!
+        memo[1] = 1;
+        return dfs(n);
+    }
+
+private:
+    unordered_map<int, int> memo;
+    int dfs(int n){
+        if(memo.find(n) != memo.end()){
+            return memo[n];
+        }
+
+        int days = min(n%2+dfs(n/2), n%3+dfs(n/3));
+
+        return memo[n] = days+1;
+    };
+};
+
+//127. Word Ladder
+class Solution127 {
+public:
+    int ladderLength(string beginWord, string endWord, vector<string>& wordList) {
+        unordered_set<string> dict(wordList.begin(), wordList.end());
+        queue<string> q;
+        q.emplace(beginWord);
+        dict.erase(beginWord);
+        int result = 1;
+
+        while (!q.empty()) {
+            result++;
+
+            int size = q.size();
+            while (size--) {
+                string word(q.front());
+                q.pop();
+
+                if (word == endWord) {
+                    return result;
+                }
+
+                for (int j = 0; j < word.size(); j++) {
+                    char c = word[j];
+                    for (int k = 0; k < 26; k++) {
+                        word[j] = k + 'a';
+                        if (dict.find(word) != dict.end()) {
+                            q.emplace(word);
+                            dict.erase(word);
+                        }
+                        word[j] = c; //backtracking
+                    }
+                }
+            }
+        }
+
+        return 0;
+    }
+};
+
+class Solution127_optimal {
+public:
+    int ladderLength(string beginWord, string endWord, vector<string>& wordList) {
+        unordered_set<string> dict(wordList.begin(), wordList.end());
+        if (dict.size()==0 || dict.count(endWord)==0)
+            return 0;
+        unordered_set<string> leftSet;
+        unordered_set<string> rightSet;
+        leftSet.emplace(beginWord);
+        rightSet.emplace(endWord);
+
+        int count = 1;
+        while (!leftSet.empty() && !rightSet.empty()) {
+            count++;
+
+            unordered_set<string> tempSet;
+            for (auto& word:leftSet) {
+                for (int i=0; i<word.length(); i++) {
+                    string tempWord(word);
+                    for (int j=0; j<26; j++) {
+                        tempWord[i] = 'a'+j;
+                        if (rightSet.count(tempWord))
+                            return count;
+                        if (dict.count(tempWord)) {
+                            tempSet.emplace(tempWord);
+                            dict.erase(tempWord);
+                        }
+                    }
+                }
+            }
+            leftSet = tempSet;
+            if (leftSet.size() > rightSet.size()) {
+                swap(leftSet, rightSet);
+            }
+        }
+        return 0;
+    }
+};
 
 
+
+//1631. Path With Minimum Effort
+class Solution1631 {
+public:
+    int minimumEffortPath(vector<vector<int>>& heights) {
+        int ROWS = heights.size();
+        int COLS = heights[0].size();
+        vector<vector<int>> directions = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+        vector<vector<int>> memo(ROWS, vector<int>(COLS, INT_MAX));
+        memo[0][0] = 0;
+
+        priority_queue<pair<int, pair<int, int>>, vector<pair<int, pair<int, int>>>, greater<pair<int, pair<int, int>>> > pq;
+        pq.emplace(0, make_pair(0, 0));
+        while (!pq.empty()) {
+            auto effort = pq.top().first;
+            auto [row, col] = pq.top().second;
+            if (row == ROWS - 1 && col == COLS - 1)
+                return effort;
+            pq.pop();
+
+            for (auto dir: directions) {
+                int nextRow = row + dir[0];
+                int nextCol = col + dir[1];
+                if (nextRow >= 0 && nextRow < ROWS && nextCol >= 0 && nextCol < COLS) {
+                    int newEffort = max(effort, abs(heights[nextRow][nextCol] - heights[row][col]));
+                    if (newEffort < memo[nextRow][nextCol]) {
+                        memo[nextRow][nextCol] = newEffort;
+                        pq.emplace(newEffort, make_pair(nextRow, nextCol));
+                    }
+                }
+            }
+        }
+
+        return -1;
+    }
+};
+
+class Solution332 {
+public:
+    vector<string> findItinerary(vector<vector<string>>& tickets) {
+        unordered_map<string, vector<string>> graph;
+
+        for (const auto& ticket : tickets) {
+            graph[ticket[0]].push_back(ticket[1]);
+        }
+
+        for (auto& pair : graph) {
+            sort(pair.second.begin(), pair.second.end());
+        }
+
+        vector<string> itinerary;
+        dfs("JFK", graph, itinerary);
+        reverse(itinerary.begin(), itinerary.end());
+        return itinerary;
+    }
+
+    void dfs(const string& departure, unordered_map<string, vector<string>>& graph, vector<string>& itinerary) {
+        while (!graph[departure].empty()) {
+            string next_destination = *graph[departure].begin(); // Take the smallest lexical order destination
+            graph[departure].erase(graph[departure].begin());
+            dfs(next_destination, graph, itinerary);
+        }
+        itinerary.push_back(departure);
+    }
+};
+
+class Solution743 {
+public:
+    int networkDelayTime(vector<vector<int>>& times, int n, int k) {
+        vector<vector<pair<int, int>>> graph(n + 1); // 1-indexed graph
+        vector<int> distance(n + 1, INT_MAX); // Initialize distances to infinity
+        vector<bool> visited(n + 1, false); // Mark nodes as visited
+
+        // Build the graph
+        for (const auto& time : times) {
+            int u = time[0];
+            int v = time[1];
+            int w = time[2];
+            graph[u].push_back({v, w});
+        }
+
+        // Priority queue for Dijkstra's algorithm: {node, distance}
+        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+
+        // Start with the source node k
+        pq.push({0, k});
+        distance[k] = 0; // Distance from source to itself is 0
+
+        // Dijkstra's algorithm
+        while (!pq.empty()) {
+            int u = pq.top().second;
+            pq.pop();
+
+            // If node u has been visited before, skip it
+            if (visited[u])
+                continue;
+
+            visited[u] = true;
+
+            // Relax all outgoing edges from node u
+            for (const auto& edge : graph[u]) {
+                int v = edge.first;
+                int w = edge.second;
+                if (!visited[v] && distance[u] + w < distance[v]) {
+                    distance[v] = distance[u] + w;
+                    pq.push({distance[v], v});
+                }
+            }
+        }
+
+        // Find the maximum distance from the source node
+        int maxDistance = *max_element(distance.begin() + 1, distance.end());
+
+        return (maxDistance == INT_MAX) ? -1 : maxDistance;
+    }
+};
+
+//1514. Path with Maximum Probability
+class Solution1514 {
+public:
+    double maxProbability(int n, vector<vector<int>>& edges, vector<double>& succProb, int start, int end) {
+        // Build the adjacency list representation of the graph
+        unordered_map<int, vector<pair<int, double>>> graph;
+        for (int i = 0; i < edges.size(); ++i) {
+            int u = edges[i][0], v = edges[i][1];
+            double p = succProb[i];
+            graph[u].push_back({v, p});
+            graph[v].push_back({u, p});
+        }
+
+        // Priority queue for Dijkstra's algorithm: {-probability, node}
+        priority_queue<pair<double, int>> pq;
+        vector<double> prob(n, 0.0); // Store the maximum probability to reach each node
+        prob[start] = 1.0; // Probability to reach start node is 1
+
+        // Start with the start node
+        pq.push({1.0, start});
+
+        // Dijkstra's algorithm
+        while (!pq.empty()) {
+            auto [curProb, u] = pq.top();
+            pq.pop();
+
+            // If the current probability is smaller than the current node's probability, skip it
+            if (curProb < prob[u])
+                continue;
+
+            // Check if we reached the end node
+            if (u == end)
+                return curProb;
+
+            // Relax all outgoing edges from the current node
+            for (const auto& edge : graph[u]) {
+                int v = edge.first;
+                double p = edge.second;
+                if (curProb * p > prob[v]) {
+                    prob[v] = curProb * p;
+                    pq.push({prob[v], v});
+                }
+            }
+        }
+
+        // If no path is found from start to end
+        return 0.0;
+    }
+};
+
+//778. Swim in Rising Water
+class Solution778 {
+public:
+    int swimInWater(vector<vector<int>>& grid) {
+        int n = grid.size();
+        vector<vector<int>> distance(n, vector<int>(n, INT_MAX)); // distance matrix
+        priority_queue<pair<int, pair<int, int>>, vector<pair<int, pair<int, int>>>, greater<pair<int, pair<int, int>>>> pq; // min-heap
+
+        // Directions for exploring adjacent cells
+        vector<pair<int, int>> directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+
+        // Initialize start cell
+        distance[0][0] = grid[0][0];
+        pq.push({distance[0][0], {0, 0}});
+
+        // Dijkstra's algorithm
+        while (!pq.empty()) {
+            auto [elevation, cell] = pq.top();
+            pq.pop();
+            int i = cell.first;
+            int j = cell.second;
+
+            // Check if reached bottom right cell
+            if (i == n - 1 && j == n - 1)
+                return elevation;
+
+            // Explore adjacent cells
+            for (const auto& dir : directions) {
+                int ni = i + dir.first;
+                int nj = j + dir.second;
+                if (ni >= 0 && ni < n && nj >= 0 && nj < n) {
+                    int newElevation = max(elevation, grid[ni][nj]);
+                    if (newElevation < distance[ni][nj]) {
+                        distance[ni][nj] = newElevation;
+                        pq.push({newElevation, {ni, nj}});
+                    }
+                }
+            }
+        }
+
+        // If no path found to bottom right cell
+        return -1;
+    }
+};
+
+//269. Alien Dictionary
+/*
+There is a new alien language which uses the latin alphabet. However, the order among letters
+ are unknown to you. You receive a list of non-empty words from the dictionary, where words
+ are sorted lexicographically by the rules of this new language. Derive the order of letters
+ in this language.
+
+Example 1:
+Input:
+[
+  "wrt",
+  "wrf",
+  "er",
+  "ett",
+  "rftt"
+]
+Output: "wertf"
+
+Example 2:
+Input:
+[
+  "z",
+  "x"
+]
+Output: "zx"
+
+Example 3:
+Input:
+[
+  "z",
+  "x",
+  "z"
+]
+Output: ""
+Explanation: The order is invalid, so return "".
+
+Note:
+You may assume all letters are in lowercase.
+You may assume that if a is a prefix of b, then a must appear before b in the given dictionary.
+If the order is invalid, return an empty string.
+There may be multiple valid order of letters, return any one of them is fine.
+ */
+class Solution269 {
+public:
+    string alienOrder(vector<string>& words) {
+        unordered_map<char, vector<char>> graph;
+        unordered_map<char, int> indegree;
+
+        // Initialize indegrees to 0
+        for (const string& word : words) {
+            for (char ch : word) {
+                indegree[ch] = 0;
+            }
+        }
+
+        // Construct the graph and calculate indegrees
+        for (int i = 0; i < words.size() - 1; ++i) {
+            const string& word1 = words[i];
+            const string& word2 = words[i + 1];
+            int len = min(word1.size(), word2.size());
+
+            // Compare characters in adjacent words
+            for (int j = 0; j < len; ++j) {
+                char from = word1[j];
+                char to = word2[j];
+                if (from != to) {
+                    graph[from].push_back(to);
+                    indegree[to]++;
+                    break; // Stop comparing once the first differing character is found
+                }
+            }
+        }
+
+        // Perform topological sort
+        queue<char> q;
+        for (const auto& entry : indegree) {
+            if (entry.second == 0) {
+                q.push(entry.first);
+            }
+        }
+
+        string order;
+        while (!q.empty()) {
+            char curr = q.front();
+            q.pop();
+            order += curr;
+
+            for (char neighbor : graph[curr]) {
+                indegree[neighbor]--;
+                if (indegree[neighbor] == 0) {
+                    q.push(neighbor);
+                }
+            }
+        }
+
+        // Check for cycle
+        if (order.size() != indegree.size()) {
+            return "";
+        }
+
+        return order;
+    }
+};
+
+//787. Cheapest Flights Within K Stops
+//Single-Source Shortest Path：Bellman-Ford Algorithm
+class Solution787 {
+public:
+    int findCheapestPrice(int n, vector<vector<int>>& flights, int src, int dst, int K) {
+        int MAX = 1e6+1;
+        vector<int> dist(n, MAX);
+
+        dist[src] = 0;
+        for(vector<int>& flight : flights){
+            //whether use flight[0] as middle point
+            if(flight[0] == src)
+                dist[flight[1]] = flight[2];
+        }
+
+        //relax for K times
+        while(K-- > 0){
+            //relax
+            vector<int> tmp(dist);
+            for(vector<int>& flight : flights){
+                //whether use flight[0] as middle point
+                /*
+                tmp cannot depend on itself!
+                it must be calculated from "dist"(from previous iteration!)
+                */
+                tmp[flight[1]] = min(tmp[flight[1]], dist[flight[0]] + flight[2]);
+            }
+            swap(tmp, dist);
+        }
+
+        return dist[dst] == MAX ? -1 : dist[dst];
+    }
+};
 
 
 #endif //NEETCODE150_GRAPHS_H
