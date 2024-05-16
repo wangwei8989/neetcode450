@@ -1072,8 +1072,13 @@ public:
 };
 
 
-
+//****************************************** advanced graph ****************************************//
 //1631. Path With Minimum Effort
+/*
+ Dijkstra's algorithm relies on always selecting the shortest path from the set of currently
+ available paths. A priority queue ensures that the paths with the minimum distance are always
+ explored first, which is crucial for Dijkstra's correctness.
+*/
 class Solution1631 {
 public:
     int minimumEffortPath(vector<vector<int>>& heights) {
@@ -1083,11 +1088,12 @@ public:
         vector<vector<int>> memo(ROWS, vector<int>(COLS, INT_MAX));
         memo[0][0] = 0;
 
-        priority_queue<pair<int, pair<int, int>>, vector<pair<int, pair<int, int>>>, greater<pair<int, pair<int, int>>> > pq;
-        pq.emplace(0, make_pair(0, 0));
+        /*as declare pq like this, the lower effort will have the higher priority.
+         if the effort are equal, then the row will be compared, and then the col*/
+        priority_queue<tuple<int, int, int>, vector<tuple<int, int, int>>, greater<> > pq;
+        pq.emplace(0, 0, 0);
         while (!pq.empty()) {
-            auto effort = pq.top().first;
-            auto [row, col] = pq.top().second;
+            auto [effort, row, col] = pq.top();
             if (row == ROWS - 1 && col == COLS - 1)
                 return effort;
             pq.pop();
@@ -1099,7 +1105,7 @@ public:
                     int newEffort = max(effort, abs(heights[nextRow][nextCol] - heights[row][col]));
                     if (newEffort < memo[nextRow][nextCol]) {
                         memo[nextRow][nextCol] = newEffort;
-                        pq.emplace(newEffort, make_pair(nextRow, nextCol));
+                        pq.emplace(newEffort, nextRow, nextCol);
                     }
                 }
             }
@@ -1109,11 +1115,12 @@ public:
     }
 };
 
+//332. Reconstruct Itinerary
+//Keep going forward until you get stuck
 class Solution332 {
 public:
     vector<string> findItinerary(vector<vector<string>>& tickets) {
-        unordered_map<string, vector<string>> graph;
-
+        unordered_map<string, deque<string>> graph;
         for (const auto& ticket : tickets) {
             graph[ticket[0]].push_back(ticket[1]);
         }
@@ -1123,26 +1130,73 @@ public:
         }
 
         vector<string> itinerary;
-        dfs("JFK", graph, itinerary);
-        reverse(itinerary.begin(), itinerary.end());
-        return itinerary;
-    }
+        function<void(const string&)> dfs = [&](const string& departure) {
+            while (!graph[departure].empty()) {
+                string next_destination = graph[departure].front(); // Take the smallest lexical order destination
+                graph[departure].pop_front();
+                dfs(next_destination);
+            }
+            itinerary.push_back(departure);
+        };
 
-    void dfs(const string& departure, unordered_map<string, vector<string>>& graph, vector<string>& itinerary) {
-        while (!graph[departure].empty()) {
-            string next_destination = *graph[departure].begin(); // Take the smallest lexical order destination
-            graph[departure].erase(graph[departure].begin());
-            dfs(next_destination, graph, itinerary);
-        }
-        itinerary.push_back(departure);
+        dfs("JFK");
+        return vector<string>(itinerary.rbegin(), itinerary.rend());
     }
 };
 
+//1584. Min Cost to Connect All Points
+/*
+ MST problem, Prim's, greedily pick node not in MST & has smallest edge cost
+ Add to MST, & for all its neighbors, try to update min dist values, repeat
+ */
+class Solution1584 {
+public:
+    int minCostConnectPoints(vector<vector<int>>& points) {
+        int n = points.size();
+        int edgesUsed = 0;
+        // track visited nodes
+        vector<bool> inMST(n);
+        vector<int> minDist(n, INT_MAX);
+        minDist[0] = 0;
+        int result = 0;
+
+        while (edgesUsed < n) {
+            int currMinEdge = INT_MAX;
+            int currNode = -1;
+
+            // greedily pick lowest cost node not in MST
+            for (int i = 0; i < n; i++) {
+                if (!inMST[i] && currMinEdge > minDist[i]) {
+                    currMinEdge = minDist[i];
+                    currNode = i;
+                }
+            }
+
+            result += currMinEdge;
+            edgesUsed++;
+            inMST[currNode] = true;
+
+            // update adj nodes of curr node
+            for (int i = 0; i < n; i++) {
+                int cost = abs(points[currNode][0] - points[i][0])
+                           + abs(points[currNode][1] - points[i][1]);
+
+                if (!inMST[i] && minDist[i] > cost) {
+                    minDist[i] = cost;
+                }
+            }
+        }
+
+        return result;
+    }
+};
+
+//743. Network Delay Time
 class Solution743 {
 public:
     int networkDelayTime(vector<vector<int>>& times, int n, int k) {
         vector<vector<pair<int, int>>> graph(n + 1); // 1-indexed graph
-        vector<int> distance(n + 1, INT_MAX); // Initialize distances to infinity
+        vector<int> signalReceiveTime(n + 1, INT_MAX); // Initialize times to infinity
         vector<bool> visited(n + 1, false); // Mark nodes as visited
 
         // Build the graph
@@ -1153,12 +1207,12 @@ public:
             graph[u].push_back({v, w});
         }
 
-        // Priority queue for Dijkstra's algorithm: {node, distance}
+        // Priority queue for Dijkstra's algorithm: {node, time}
         priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
 
         // Start with the source node k
         pq.push({0, k});
-        distance[k] = 0; // Distance from source to itself is 0
+        signalReceiveTime[k] = 0; // time from source to itself is 0
 
         // Dijkstra's algorithm
         while (!pq.empty()) {
@@ -1175,17 +1229,16 @@ public:
             for (const auto& edge : graph[u]) {
                 int v = edge.first;
                 int w = edge.second;
-                if (!visited[v] && distance[u] + w < distance[v]) {
-                    distance[v] = distance[u] + w;
-                    pq.push({distance[v], v});
+                if (!visited[v] && signalReceiveTime[u] + w < signalReceiveTime[v]) {
+                    signalReceiveTime[v] = signalReceiveTime[u] + w;
+                    pq.push({signalReceiveTime[v], v});
                 }
             }
         }
 
-        // Find the maximum distance from the source node
-        int maxDistance = *max_element(distance.begin() + 1, distance.end());
-
-        return (maxDistance == INT_MAX) ? -1 : maxDistance;
+        // Find the maximum time from the source node
+        int maxTime = *max_element(signalReceiveTime.begin() + 1, signalReceiveTime.end());
+        return (maxTime == INT_MAX) ? -1 : maxTime;
     }
 };
 
@@ -1224,9 +1277,7 @@ public:
                 return curProb;
 
             // Relax all outgoing edges from the current node
-            for (const auto& edge : graph[u]) {
-                int v = edge.first;
-                double p = edge.second;
+            for (const auto& [v, p] : graph[u]) {
                 if (curProb * p > prob[v]) {
                     prob[v] = curProb * p;
                     pq.push({prob[v], v});
@@ -1245,21 +1296,19 @@ public:
     int swimInWater(vector<vector<int>>& grid) {
         int n = grid.size();
         vector<vector<int>> distance(n, vector<int>(n, INT_MAX)); // distance matrix
-        priority_queue<pair<int, pair<int, int>>, vector<pair<int, pair<int, int>>>, greater<pair<int, pair<int, int>>>> pq; // min-heap
+        priority_queue<tuple<int, int, int>, vector<tuple<int, int, int>>, greater<tuple<int, int, int>>> pq; // min-heap
 
         // Directions for exploring adjacent cells
         vector<pair<int, int>> directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
         // Initialize start cell
         distance[0][0] = grid[0][0];
-        pq.push({distance[0][0], {0, 0}});
+        pq.emplace(distance[0][0], 0, 0);
 
         // Dijkstra's algorithm
         while (!pq.empty()) {
-            auto [elevation, cell] = pq.top();
+            auto [elevation, i, j] = pq.top();
             pq.pop();
-            int i = cell.first;
-            int j = cell.second;
 
             // Check if reached bottom right cell
             if (i == n - 1 && j == n - 1)
@@ -1273,7 +1322,7 @@ public:
                     int newElevation = max(elevation, grid[ni][nj]);
                     if (newElevation < distance[ni][nj]) {
                         distance[ni][nj] = newElevation;
-                        pq.push({newElevation, {ni, nj}});
+                        pq.emplace(newElevation, ni, nj);
                     }
                 }
             }
@@ -1403,9 +1452,7 @@ public:
                 dist[flight[1]] = flight[2];
         }
 
-        //relax for K times
         while(K-- > 0){
-            //relax
             vector<int> tmp(dist);
             for(vector<int>& flight : flights){
                 //whether use flight[0] as middle point
@@ -1419,6 +1466,154 @@ public:
         }
 
         return dist[dst] == MAX ? -1 : dist[dst];
+    }
+};
+
+//2421. Number of Good Paths
+class Solution2421 {
+    int findParent(vector<int>& parent, int a) {
+        if (a == parent[a]) {
+            return a;
+        }
+        parent[a] = findParent(parent, parent[a]);
+        return parent[a];
+    }
+
+public:
+    int numberOfGoodPaths(vector<int>& vals, vector<vector<int>>& edges) {
+        int n = vals.size();
+        vector<int> parent(n);
+        vector<int> maxElement(vals);
+        vector<int> count(n, 1);
+
+        iota(parent.begin(), parent.end(), 0);
+
+        //ensures that we process edges in the order of increasing maximum node values.
+        sort(edges.begin(), edges.end(), [&vals](const vector<int>& a, const vector<int>& b) {
+            return max(vals[a[0]], vals[a[1]]) < max(vals[b[0]], vals[b[1]]);
+        });
+
+        //each node is a trivial good path
+        int ans = n;
+        for (const auto& it : edges) {
+            int a = findParent(parent, it[0]);
+            int b = findParent(parent, it[1]);
+            if (maxElement[a] > maxElement[b]) {
+                parent[b] = a;
+            } else if (maxElement[a] < maxElement[b]){
+                parent[a] = b;
+            }
+            else {
+                parent[b] = a;
+                ans += count[a] * count[b];
+                count[a] += count[b];
+            }
+        }
+
+        return ans;
+    }
+};
+
+//1579. Remove Max Number of Edges to Keep Graph Fully Traversable
+class Solution1579 {
+public:
+    int maxNumEdgesToRemove(int n, vector<vector<int>>& edges) {
+        DSU dsu_alice(n + 1), dsu_bob(n + 1);
+        int required_edges = 0;
+
+        // First, add all type 3 edges
+        for (const auto& edge : edges) {
+            if (edge[0] == 3) {
+                if (dsu_alice.unite(edge[1], edge[2])) {
+                    dsu_bob.unite(edge[1], edge[2]);
+                    ++required_edges;
+                }
+            }
+        }
+
+        for (const auto& edge : edges) {
+            if (edge[0] == 1) {
+                if (dsu_alice.unite(edge[1], edge[2])) {
+                    ++required_edges;
+                }
+            } else if (edge[0] == 2) {
+                if (dsu_bob.unite(edge[1], edge[2])) {
+                    ++required_edges;
+                }
+            }
+        }
+
+        // Check if both Alice and Bob can traverse the entire graph
+        if (isFullyTraversable(dsu_alice, n) && isFullyTraversable(dsu_bob, n)) {
+            return edges.size() - required_edges;
+        } else {
+            return -1;
+        }
+    }
+
+private:
+    bool isFullyTraversable(DSU& dsu, int n) {
+        int root = dsu.find(1);
+        for (int i = 2; i <= n; ++i) {
+            if (dsu.find(i) != root) {
+                return false;
+            }
+        }
+        return true;
+    }
+};
+
+//1489. Find Critical and Pseudo-Critical Edges in Minimum Spanning Tree
+class Solution1489 {
+public:
+    vector<vector<int>> findCriticalAndPseudoCriticalEdges(int n, vector<vector<int>>& edges) {
+        int m = edges.size();
+        for (int i = 0; i < m; ++i) {
+            edges[i].push_back(i);  // Add index to edge
+        }
+        sort(edges.begin(), edges.end(), [](const auto& a, const auto& b) {
+            return a[2] < b[2];  // Sort edges by weight
+        });
+
+        // Find MST weight
+        int mstWeight = 0;
+        DSU dsu(n);
+        for (auto& edge : edges) {
+            if (dsu.unite(edge[0], edge[1])) {
+                mstWeight += edge[2];
+            }
+        }
+
+        vector<int> criticalEdges, pseudoCriticalEdges;
+        for (int i = 0; i < m; ++i) {
+            // Check if edge is critical
+            int weightWithoutEdge = 0;
+            DSU dsuWithoutEdge(n);
+            for (int j = 0; j < m; ++j) {
+                if (i != j && dsuWithoutEdge.unite(edges[j][0], edges[j][1])) {
+                    weightWithoutEdge += edges[j][2];
+                }
+            }
+            if (dsuWithoutEdge.find(edges[i][0]) != dsuWithoutEdge.find(edges[i][1]) || weightWithoutEdge > mstWeight) {
+                criticalEdges.push_back(edges[i][3]);
+                continue;
+            }
+
+            // Check if edge is pseudo-critical
+            DSU dsuWithEdge(n);
+            dsuWithEdge.unite(edges[i][0], edges[i][1]);
+            int mstWeightWithEdge = edges[i][2];
+            for (int j = 0; j < m; ++j) {
+                if (i != j && dsuWithEdge.unite(edges[j][0], edges[j][1])) {
+                    mstWeightWithEdge += edges[j][2];
+                }
+            }
+            if (mstWeightWithEdge == mstWeight) {
+                pseudoCriticalEdges.push_back(edges[i][3]);
+            }
+        }
+
+        return {criticalEdges, pseudoCriticalEdges};
     }
 };
 
