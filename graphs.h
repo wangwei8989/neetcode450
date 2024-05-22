@@ -396,6 +396,58 @@ public:
     }
 };
 
+//909. Snakes and Ladders
+class Solution909 {
+public:
+    int snakesAndLadders(vector<vector<int>>& board) {
+        int n = board.size();
+        int target = n * n;
+        unordered_set<int> visited;
+
+        auto getCoordinates = [&](int square) -> pair<int, int> {
+            int row = (square - 1) / n;
+            int col = (square - 1) % n;
+            if (row % 2 != 0) {
+                col = n - 1 - col;
+            }
+            return {n - 1 - row, col};
+        };
+
+        int start = 1;
+        queue<pair<int, int>> q;
+        q.push({start, 0});
+
+        while (!q.empty()) {
+            auto [square, moves] = q.front();
+            q.pop();
+
+            if (square == target) {
+                return moves;
+            }
+
+            if (visited.count(square)) {
+                continue;
+            }
+            visited.insert(square);
+
+            for (int roll = 1; roll <= 6; ++roll) {
+                int nextSquare = min(square + roll, target);
+                auto [row, col] = getCoordinates(nextSquare);
+
+                if (board[row][col] != -1) {
+                    nextSquare = board[row][col];
+                }
+
+                if (!visited.count(nextSquare)) {
+                    q.push({nextSquare, moves + 1});
+                }
+            }
+        }
+
+        return -1;
+    }
+};
+
 //752. Open the Lock
 class Solution752 {
 public:
@@ -617,6 +669,32 @@ private:
 };
 
 //1462. Course Schedule IV
+class Solution1462 {
+public:
+    vector<bool> checkIfPrerequisite(int numCourses, vector<vector<int>>& prerequisites, vector<vector<int>>& queries) {
+        vector<vector<bool>> reachable(numCourses, vector<bool>(numCourses, false));
+
+        for (const auto& pre : prerequisites) {
+            reachable[pre[0]][pre[1]] = true;
+        }
+
+        // Apply Floyd-Warshall algorithm to compute the transitive closure
+        for (int k = 0; k < numCourses; ++k) {
+            for (int i = 0; i < numCourses; ++i) {
+                for (int j = 0; j < numCourses; ++j) {
+                    reachable[i][j] = reachable[i][j] || (reachable[i][k] && reachable[k][j]);
+                }
+            }
+        }
+
+        vector<bool> answer;
+        for (const auto& query : queries) {
+            answer.push_back(reachable[query[0]][query[1]]);
+        }
+
+        return answer;
+    }
+};
 
 //1958. Check if Move is Legal
 class Solution1958 {
@@ -748,6 +826,70 @@ public:
     }
 };
 
+//323. Number of Connected Components in an Undirected Graph
+/*
+ Given n nodes labeled from 0 to n - 1 and a list of undirected edges (each edge is a pair of nodes),
+ write a function to find the number of connected components in an undirected graph.
+
+ Example 1:
+     0          3
+     |          |
+     1 --- 2    4
+Given n = 5 and edges = [[0, 1], [1, 2], [3, 4]], return 2.
+ Example 2:
+     0           4
+     |           |
+     1 --- 2 --- 3
+Given n = 5 and edges = [[0, 1], [1, 2], [2, 3], [3, 4]], return 1.
+
+Note:
+You can assume that no duplicate edges will appear in edges. Since all edges are undirected, [0, 1] is the same as [1, 0] and thus will not appear together in edges.
+*/
+class Solution323 {
+public:
+    int countComponents(int n, vector<vector<int>>& edges) {
+        vector<int> parents;
+        vector<int> ranks(n, 1);
+        iota(parents.begin(), parents.end(), 0);
+
+        int result = n;
+        for (int i = 0; i < edges.size(); i++) {
+            int n1 = edges[i][0];
+            int n2 = edges[i][1];
+            result -= doUnion(parents, ranks, n1, n2);
+        }
+        return result;
+    }
+
+private:
+    int doFind(vector<int>& parents, int n) {
+        int p = parents[n];
+        while (p != parents[p]) {
+            parents[p] = parents[parents[p]];
+            p = parents[p];
+        }
+        return p;
+    }
+
+    int doUnion(vector<int>& parents, vector<int>& ranks, int n1, int n2) {
+        int p1 = doFind(parents, n1);
+        int p2 = doFind(parents, n2);
+        if (p1 == p2) {
+            return 0;
+        }
+
+        if (ranks[p1] > ranks[p2]) {
+            parents[p2] = p1;
+            ranks[p1] += ranks[p2];
+        } else {
+            parents[p1] = p2;
+            ranks[p2] += ranks[p1];
+        }
+
+        return 1;
+    }
+};
+
 //684. Redundant Connection
 class Solution684 {
     unordered_map<int, unordered_set<int>> graph;
@@ -789,6 +931,64 @@ private:
     }
 };
 
+//721. Accounts Merge
+class Solution721 {
+public:
+    vector<vector<string>> accountsMerge(vector<vector<string>>& accounts) {
+        unordered_map<string, string> email_to_name;
+        unordered_map<string, string> parent;
+
+        // Initialize union-find structure
+        for (const auto& account : accounts) {
+            string name = account[0];
+            for (int i = 1; i < account.size(); ++i) {
+                email_to_name[account[i]] = name;
+                parent[account[i]] = account[i]; // each email points to itself
+            }
+        }
+
+        // Find the root of an email
+        function<string(string)> find = [&](string email) -> string {
+            if (parent[email] != email) {
+                parent[email] = find(parent[email]); // path compression
+            }
+            return parent[email];
+        };
+
+        // Union two emails
+        auto unite = [&](string email1, string email2) {
+            parent[find(email1)] = find(email2);
+        };
+
+        // Perform union operation for all emails in the same account
+        for (const auto& account : accounts) {
+            string first_email = account[1];
+            for (int i = 2; i < account.size(); ++i) {
+                unite(first_email, account[i]);
+            }
+        }
+
+        // Collect emails belonging to the same root
+        unordered_map<string, set<string>> unions;
+        for (const auto& account : accounts) {
+            for (int i = 1; i < account.size(); ++i) {
+                string root_email = find(account[i]);
+                unions[root_email].insert(account[i]);
+            }
+        }
+
+        // Build the result
+        vector<vector<string>> merged_accounts;
+        for (const auto& pair : unions) {
+            vector<string> emails(pair.second.begin(), pair.second.end());
+            emails.insert(emails.begin(), email_to_name[pair.first]);
+            merged_accounts.push_back(emails);
+        }
+
+        return merged_accounts;
+    }
+};
+
 //1162. As Far from Land as Possible
 class Solution1162 {
 public:
@@ -823,6 +1023,127 @@ public:
             q.pop();
         }
         return result - 1;
+    }
+};
+
+//1129. Shortest Path with Alternating Colors
+class Solution1129 {
+public:
+    vector<int> shortestAlternatingPaths(int n, vector<vector<int>>& redEdges, vector<vector<int>>& blueEdges) {
+        vector<vector<pair<int, int>>> graph(n); // pair(node, color), color: 0 - red, 1 - blue
+        for (const auto& edge : redEdges) {
+            graph[edge[0]].emplace_back(edge[1], 0); // Red edge
+        }
+        for (const auto& edge : blueEdges) {
+            graph[edge[0]].emplace_back(edge[1], 1); // Blue edge
+        }
+
+        vector<vector<int>> distances(n, vector<int>(2, -1)); // distances[node][color]
+        distances[0][0] = distances[0][1] = 0; // Starting node
+
+        queue<tuple<int, int, int>> q; // (node, distance, last color)
+        q.emplace(0, 0, -1); // Starting with node 0 and no color (-1)
+
+        while (!q.empty()) {
+            auto [node, dist, lastColor] = q.front();
+            q.pop();
+            for (const auto& [nextNode, edgeColor] : graph[node]) {
+                if (edgeColor != lastColor && distances[nextNode][edgeColor] == -1) {
+                    distances[nextNode][edgeColor] = dist + 1;
+                    q.emplace(nextNode, dist + 1, edgeColor);
+                }
+            }
+        }
+
+        vector<int> result(n, -1);
+        for (int i = 0; i < n; ++i) {
+            if (distances[i][0] != -1 && distances[i][1] != -1) {
+                result[i] = min(distances[i][0], distances[i][1]);
+            } else if (distances[i][0] != -1) {
+                result[i] = distances[i][0];
+            } else if (distances[i][1] != -1) {
+                result[i] = distances[i][1];
+            }
+        }
+        return result;
+    }
+};
+
+//2477. Minimum Fuel Cost to Report to the Capital
+class Solution2477 {
+public:
+    long long minimumFuelCost(vector<vector<int>>& roads, int seats) {
+        int n = roads.size() + 1;
+        vector<vector<int>> graph(n);
+
+        // Build the adjacency list
+        for (const auto& road : roads) {
+            graph[road[0]].push_back(road[1]);
+            graph[road[1]].push_back(road[0]);
+        }
+
+        long long fuelCost = 0;
+
+        // DFS function to calculate fuel cost
+        function<int(int, int)> dfs = [&](int node, int parent) {
+            int representatives = 1;
+
+            for (int neighbor : graph[node]) {
+                if (neighbor == parent) continue;
+                representatives += dfs(neighbor, node);
+            }
+
+            if (node != 0) { // If not the capital city, add fuel cost for this subtree
+                fuelCost += (representatives + seats - 1) / seats;
+            }
+
+            return representatives;
+        };
+
+        // Start DFS from the capital city (node 0)
+        dfs(0, -1);
+
+        return fuelCost;
+    }
+};
+
+//2492. Minimum Score of a Path Between Two Cities
+class Solution2492 {
+public:
+    int minScore(int n, vector<vector<int>>& roads) {
+        // Adjacency list representation of the graph
+        vector<vector<pair<int, int>>> graph(n + 1);
+        for (const auto& road : roads) {
+            int u = road[0], v = road[1], dist = road[2];
+            graph[u].emplace_back(v, dist);
+            graph[v].emplace_back(u, dist);
+        }
+
+        queue<int> q;
+        vector<bool> visited(n + 1, false);
+        q.push(1);
+        visited[1] = true;
+
+        int minScore = INT_MAX;
+
+        while (!q.empty()) {
+            int city = q.front();
+            q.pop();
+
+            for (const auto& neighbor : graph[city]) {
+                int nextCity = neighbor.first;
+                int distance = neighbor.second;
+
+                minScore = min(minScore, distance);
+
+                if (!visited[nextCity]) {
+                    visited[nextCity] = true;
+                    q.push(nextCity);
+                }
+            }
+        }
+
+        return minScore;
     }
 };
 
@@ -927,6 +1248,229 @@ public:
             }
         }
         return count;
+    }
+};
+
+//1557. Minimum Number of Vertices to Reach All Nodes
+class Solution1557 {
+public:
+    vector<int> findSmallestSetOfVertices(int n, vector<vector<int>>& edges) {
+        vector<int> inDegree(n, 0);
+        for (const auto& edge : edges) {
+            inDegree[edge[1]]++;
+        }
+
+        vector<int> result;
+        for (int i = 0; i < n; ++i) {
+            if (inDegree[i] == 0) {
+                result.push_back(i);
+            }
+        }
+
+        return result;
+    }
+};
+
+//785. Is Graph Bipartite?
+/*graph coloring approach*/
+class Solution785 {
+public:
+    bool isBipartite(vector<vector<int>>& graph) {
+        int n = graph.size();
+        vector<int> colors(n, -1);
+
+        for (int i = 0; i < n; ++i) {
+            if (colors[i] == -1) {
+                if (!bfsCheck(graph, colors, i)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+private:
+    bool bfsCheck(const vector<vector<int>>& graph, vector<int>& colors, int start) {
+        queue<int> q;
+        q.push(start);
+        colors[start] = 0;
+
+        while (!q.empty()) {
+            int node = q.front();
+            q.pop();
+            int currentColor = colors[node];
+
+            for (int neighbor : graph[node]) {
+                if (colors[neighbor] == -1) {
+                    colors[neighbor] = 1 - currentColor;
+                    q.push(neighbor);
+                } else if (colors[neighbor] == currentColor) {
+                    // If the neighbor has the same color, the graph is not bipartite
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+};
+
+//399. Evaluate Division
+class Solution399 {
+    unordered_map<string, vector<pair<string, double>>> graph;
+    unordered_map<string, bool> visited;
+    double queryAns;
+
+public:
+    bool dfs(string startNode, string endNode, double runningProduct){
+        if(graph.find(startNode) == graph.end() || graph.find(endNode) == graph.end()) {
+            return false;
+        }
+
+        if(startNode == endNode && graph.find(startNode)!=graph.end()) {
+            queryAns = runningProduct;
+            return true;
+        }
+
+        bool tempAns = false;
+        visited[startNode] = true;
+
+        for(int i = 0; i < graph[startNode].size(); i++){
+            if(!visited[graph[startNode][i].first]){
+                tempAns = dfs(graph[startNode][i].first, endNode, runningProduct*graph[startNode][i].second);
+                if(tempAns){
+                    break;
+                }
+            }
+        }
+        visited[startNode] = false;
+
+        return tempAns;
+    }
+
+    vector<double> calcEquation(vector<vector<string>>& equations, vector<double>& values, vector<vector<string>>& queries) {
+        int n = equations.size(), m = queries.size();
+        vector<double> ans(m);
+
+        for(int i = 0; i < n ; i++){
+
+            graph[equations[i][0]].push_back({equations[i][1], values[i]});
+            graph[equations[i][1]].push_back({equations[i][0], 1/values[i]});
+            visited[equations[i][0]] = false;
+            visited[equations[i][1]] = false;
+
+        }
+
+        for(int i = 0; i < m ; i++){
+            queryAns = 1;
+            bool pathFound = dfs(queries[i][0], queries[i][1], 1);
+            if(pathFound) ans[i] = queryAns;
+            else ans[i] = -1;
+
+        }
+        return ans;
+    }
+};
+
+//2101. Detonate the Maximum Bombs
+class Solution2101 {
+public:
+    int maximumDetonation(vector<vector<int>>& bombs) {
+        int n = bombs.size();
+        vector<vector<int>> graph(n);
+
+        // Build the graph
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < n; ++j) {
+                if (i != j && inRange(bombs[i], bombs[j])) {
+                    graph[i].push_back(j);
+                }
+            }
+        }
+
+        int maxDetonated = 0;
+        // Perform BFS or DFS from each bomb
+        for (int i = 0; i < n; ++i) {
+            vector<bool> visited(n, false);
+            int count = bfs(graph, i, visited);
+            maxDetonated = max(maxDetonated, count);
+        }
+
+        return maxDetonated;
+    }
+
+private:
+    bool inRange(const vector<int>& bomb1, const vector<int>& bomb2) {
+        long long x1 = bomb1[0], y1 = bomb1[1], r1 = bomb1[2];
+        long long x2 = bomb2[0], y2 = bomb2[1];
+        long long dx = x1 - x2, dy = y1 - y2;
+        return dx * dx + dy * dy <= r1 * r1;
+    }
+
+    int bfs(const vector<vector<int>>& graph, int start, vector<bool>& visited) {
+        queue<int> q;
+        q.push(start);
+        visited[start] = true;
+        int count = 0;
+
+        while (!q.empty()) {
+            int node = q.front();
+            q.pop();
+            count++;
+
+            for (int neighbor : graph[node]) {
+                if (!visited[neighbor]) {
+                    visited[neighbor] = true;
+                    q.push(neighbor);
+                }
+            }
+        }
+
+        return count;
+    }
+};
+
+//1857. Largest Color Value in a Directed Graph
+class Solution1857 {
+public:
+    int largestPathValue(string colors, vector<vector<int>>& edges) {
+        int n = colors.size();
+        vector<int> indegrees(n, 0);
+        vector<vector<int>> graph(n, vector<int>());
+        for (vector<int>& edge : edges) {
+            graph[edge[0]].push_back(edge[1]);
+            indegrees[edge[1]]++;
+        }
+
+        queue<int> zero_indegree;
+        for (int i = 0; i < n; i++) {
+            if (indegrees[i] == 0) {
+                zero_indegree.push(i);
+            }
+        }
+
+        vector<vector<int>> counts(n, vector<int>(26, 0));
+        for (int i = 0; i < n; i++) {
+            counts[i][colors[i] - 'a']++;
+        }
+
+        int max_count = 0;
+        int visited = 0;
+        while (!zero_indegree.empty()) {
+            int u = zero_indegree.front();
+            zero_indegree.pop();
+            visited++;
+            for (int v : graph[u]) {
+                for (int i = 0; i < 26; i++) {
+                    counts[v][i] = max(counts[v][i], counts[u][i] + (colors[v] - 'a' == i ? 1 : 0));
+                }
+                indegrees[v]--;
+                if (indegrees[v] == 0) {
+                    zero_indegree.push(v);
+                }
+            }
+            max_count = max(max_count, *max_element(counts[u].begin(), counts[u].end()));
+        }
+        return visited == n ? max_count : -1;
     }
 };
 
@@ -1130,7 +1674,7 @@ public:
         }
 
         vector<string> itinerary;
-        function<void(const string&)> dfs = [&](const string& departure) {
+        function<void(const string&)> dfs = [&](const string& departure){
             while (!graph[departure].empty()) {
                 string next_destination = graph[departure].front(); // Take the smallest lexical order destination
                 graph[departure].pop_front();
@@ -1616,6 +2160,5 @@ public:
         return {criticalEdges, pseudoCriticalEdges};
     }
 };
-
 
 #endif //NEETCODE150_GRAPHS_H
