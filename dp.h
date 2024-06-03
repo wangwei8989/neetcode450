@@ -445,6 +445,112 @@ public:
     }
 };
 
+//2369. Check if There is a Valid Partition For The Array
+class Solution2369 {
+public:
+    bool validPartition(vector<int>& nums) {
+        int n = nums.size();
+        if (n < 2) return false;
+
+        vector<bool> dp(n, false);
+
+        // Case for two equal elements
+        if (nums[0] == nums[1]) dp[1] = true;
+
+        for (int i = 2; i < n; ++i) {
+            // Check for partition ending with two equal elements
+            if (nums[i] == nums[i - 1]) {
+                dp[i] = dp[i] || dp[i - 2];
+            }
+            // Check for partition ending with three equal elements
+            if (i >= 2 && nums[i] == nums[i - 1] && nums[i] == nums[i - 2]) {
+                dp[i] = dp[i] || (i >= 3 ? dp[i - 3] : true);
+            }
+            // Check for partition ending with three consecutive increasing elements
+            if (i >= 2 && nums[i] == nums[i - 1] + 1 && nums[i] == nums[i - 2] + 2) {
+                dp[i] = dp[i] || (i >= 3 ? dp[i - 3] : true);
+            }
+        }
+
+        return dp[n - 1];
+    }
+};
+
+//1856. Maximum Subarray Min-Product
+class Solution1856 {
+public:
+    int maxSumMinProduct(vector<int>& nums) {
+        int n = nums.size();
+        vector<long long> prefix(n + 1, 0);
+
+        for (int i = 0; i < n; ++i) {
+            prefix[i + 1] = prefix[i] + nums[i];
+        }
+
+        // Monotonic stack to find left boundaries
+        vector<int> left(n, -1);
+        stack<int> st;
+        for (int i = 0; i < n; ++i) {
+            while (!st.empty() && nums[st.top()] >= nums[i]) {
+                st.pop();
+            }
+            if (!st.empty()) {
+                left[i] = st.top();
+            }
+            st.push(i);
+        }
+
+        // Clear the stack to reuse for right boundaries
+        while (!st.empty()) {
+            st.pop();
+        }
+
+        // Monotonic stack to find right boundaries
+        vector<int> right(n, n);
+        for (int i = n - 1; i >= 0; --i) {
+            while (!st.empty() && nums[st.top()] >= nums[i]) {
+                st.pop();
+            }
+            if (!st.empty()) {
+                right[i] = st.top();
+            }
+            st.push(i);
+        }
+
+        long long maxMinProduct = 0;
+        for (int i = 0; i < n; ++i) {
+            long long sum = prefix[right[i]] - prefix[left[i] + 1];
+            long long minProduct = nums[i] * sum;
+            maxMinProduct = max(maxMinProduct, minProduct);
+        }
+
+        return maxMinProduct % MOD;
+    }
+};
+
+//983. Minimum Cost For Tickets
+class Solution983 {
+public:
+    int mincostTickets(vector<int>& days, vector<int>& costs) {
+        vector<int> dp(366, 0);
+        set<int> travel_days(days.begin(), days.end());
+
+        for (int i = 1; i <= 365; ++i) {
+            if (travel_days.find(i) == travel_days.end()) {
+                dp[i] = dp[i - 1];
+            } else {
+                dp[i] = min({
+                                dp[i - 1] + costs[0],
+                                dp[max(i - 7, 0)] + costs[1],
+                                dp[max(i - 30, 0)] + costs[2]
+                            });
+            }
+        }
+
+        return dp[365];
+    }
+};
+
 //343. Integer Break
 class Solution343 {
 public:
@@ -460,7 +566,256 @@ public:
     }
 };
 
+//691. Stickers to Spell Word
+class Solution691 {
+public:
+    int minStickers(vector<string>& stickers, string target) {
+        int n = target.size();
+        int targetMask = (1 << n) - 1;
 
+        vector<unordered_map<char, int>> stickerCount(stickers.size());
+        for (int i = 0; i < stickers.size(); ++i) {
+            for (char c : stickers[i]) {
+                stickerCount[i][c]++;
+            }
+        }
+
+        vector<int> dp(1 << n, -1);
+        dp[0] = 0;
+
+        queue<int> q;
+        q.push(0);
+
+        while (!q.empty()) {
+            int mask = q.front();
+            q.pop();
+
+            for (int i = 0; i < stickers.size(); ++i) {
+                int newMask = mask;
+                auto &count = stickerCount[i];
+                vector<int> remainingCount(26, 0);
+
+                for (int j = 0; j < n; ++j) {
+                    if ((mask >> j) & 1) continue;
+                    char c = target[j];
+                    if (count.find(c) != count.end() && count[c] > remainingCount[c - 'a']) {
+                        newMask |= (1 << j);
+                        remainingCount[c - 'a']++;
+                    }
+                }
+
+                if (dp[newMask] == -1 || dp[newMask] > dp[mask] + 1) {
+                    dp[newMask] = dp[mask] + 1;
+                    q.push(newMask);
+                }
+            }
+        }
+
+        return dp[targetMask];
+    }
+};
+
+//1035. Uncrossed Lines
+class Solution1035 {
+public:
+    int maxUncrossedLines(vector<int>& nums1, vector<int>& nums2) {
+        int m = nums1.size();
+        int n = nums2.size();
+
+        // DP table where dp[i][j] represents the LCS of nums1[0..i-1] and nums2[0..j-1]
+        vector<vector<int>> dp(m + 1, vector<int>(n + 1, 0));
+
+        // Fill the DP table
+        for (int i = 1; i <= m; ++i) {
+            for (int j = 1; j <= n; ++j) {
+                if (nums1[i - 1] == nums2[j - 1]) {
+                    dp[i][j] = dp[i - 1][j - 1] + 1;
+                } else {
+                    dp[i][j] = max(dp[i - 1][j], dp[i][j - 1]);
+                }
+            }
+        }
+
+        // The result is in dp[m][n]
+        return dp[m][n];
+    }
+};
+
+//2140. Solving Questions With
+class Solution2140 {
+public:
+    long long mostPoints(vector<vector<int>>& questions) {
+        int n = questions.size();
+        vector<long long> dp(n + 1, 0);
+
+        for (int i = n - 1; i >= 0; --i) {
+            int points = questions[i][0];
+            int brainpower = questions[i][1];
+            dp[i] = max(points + (i + brainpower + 1 < n ? dp[i + brainpower + 1] : 0), dp[i + 1]);
+        }
+
+        return dp[0];
+    }
+};
+
+//2466. Count Ways To Build Good Strings
+class Solution2466 {
+public:
+    int countGoodStrings(int low, int high, int zero, int one) {
+        vector<int> dp(high + 1, 0);
+        dp[0] = 1; // There is one way to form an empty string.
+
+        for (int length = 0; length <= high; ++length) {
+            if (dp[length] > 0) {
+                if (length + zero <= high) {
+                    dp[length + zero] = (dp[length + zero] + dp[length]) % MOD;
+                }
+                if (length + one <= high) {
+                    dp[length + one] = (dp[length + one] + dp[length]) % MOD;
+                }
+            }
+        }
+
+        int result = 0;
+        for (int length = low; length <= high; ++length) {
+            result = (result + dp[length]) % MOD;
+        }
+
+        return result;
+    }
+};
+
+//837. New 21 Game
+class Solution837 {
+public:
+    double new21Game(int n, int k, int maxPts) {
+        if (k == 0 || n >= k + maxPts) {
+            return 1.0;
+        }
+
+        vector<double> dp(n + 1, 0.0);
+        dp[0] = 1.0;
+        double windowSum = 1.0, result = 0.0;
+
+        for (int i = 1; i <= n; ++i) {
+            dp[i] = windowSum / maxPts;
+            if (i < k) {
+                windowSum += dp[i];
+            } else {
+                result += dp[i];
+            }
+            if (i - maxPts >= 0) {
+                windowSum -= dp[i - maxPts];
+            }
+        }
+
+        return result;
+    }
+};
+
+//1626. Best Team With No Conflicts
+class Solution1626 {
+public:
+    int bestTeamScore(vector<int>& scores, vector<int>& ages) {
+        int n = scores.size();
+        vector<pair<int, int>> players(n);
+        for (int i = 0; i < n; ++i) {
+            players[i] = {ages[i], scores[i]};
+        }
+
+        // Sort players by age, and then by score
+        sort(players.begin(), players.end());
+
+        // Initialize dp array
+        vector<int> dp(n, 0);
+        int maxScore = 0;
+
+        for (int i = 0; i < n; ++i) {
+            dp[i] = players[i].second;  // The score of the player itself
+            for (int j = 0; j < i; ++j) {
+                // No conflict if scores[j] <= scores[i]
+                if (players[j].second <= players[i].second) {
+                    dp[i] = max(dp[i], dp[j] + players[i].second);
+                }
+            }
+            maxScore = max(maxScore, dp[i]);
+        }
+
+        return maxScore;
+    }
+};
+
+//1406. Stone Game III
+class Solution1406 {
+public:
+    string stoneGameIII(vector<int>& stoneValue) {
+        int n = stoneValue.size();
+        vector<int> dp(n + 1, 0);
+
+        for (int i = n - 1; i >= 0; --i) {
+            int maxScore = INT_MIN;
+            int curScore = 0;
+            for (int k = 1; k <= 3 && i + k <= n; ++k) {
+                curScore += stoneValue[i + k - 1];
+                maxScore = max(maxScore, curScore - dp[i + k]);
+            }
+            dp[i] = maxScore;
+        }
+
+        if (dp[0] > 0) {
+            return "Alice";
+        } else if (dp[0] < 0) {
+            return "Bob";
+        } else {
+            return "Tie";
+        }
+    }
+};
+
+//1964. Find the Longest Valid Obstacle Course at Each Position
+class Solution1964 {
+public:
+    vector<int> longestObstacleCourseAtEachPosition(vector<int>& obstacles) {
+        int n = obstacles.size();
+        vector<int> dp(n);
+        // Vector to store the indices of the obstacles in the longest increasing subsequence
+        vector<int> lis;
+
+        for (int i = 0; i < n; ++i) {
+            auto it = upper_bound(lis.begin(), lis.end(), obstacles[i]);
+            dp[i] = it - lis.begin() + 1;
+
+            if (it == lis.end()) {
+                lis.push_back(obstacles[i]);
+            } else { 
+                *it = obstacles[i];
+            }
+        }
+
+        return dp;
+    }
+};
+
+//1359. Count All Valid Pickup and Delivery Options
+/*Intuition:
+    The total number of all permutation obviously eauqls to 2n!.
+    For each pair, the order is determined, so we need to divide by 2.
+    So the final result is (2n)!/(2^n)
+ */
+class Solution1359 {
+public:
+    int countOrders(int n) {
+        vector<int> dp(n + 1);
+        dp[1] = 1;
+
+        for (int i = 2; i <= n; ++i) {
+            // factorial(2n) = 2n * (2n - 1) * factorial(2(n-1))
+            dp[i] = (static_cast<long long>(dp[i - 1]) * i * (2 * i - 1)) % MOD;
+        }
+
+        return dp[n];
+    }
+};
 
 /************************************2-D dynamic programming********************************/
 //62. Unique Paths
@@ -873,7 +1228,6 @@ private:
         return result;
     }
 };
-
 
 //1866. Number of Ways to Rearrange Sticks With K Sticks Visible
 class Solution1866 {
